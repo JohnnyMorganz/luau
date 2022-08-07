@@ -1290,6 +1290,7 @@ std::string toStringNamedFunction(const std::string& funcName, const FunctionTyp
         tvs.stringify(ftv.generics, ftv.genericPacks);
 
     state.emit("(");
+    state.indent();
 
     auto argPackIter = begin(ftv.argTypes);
 
@@ -1306,7 +1307,14 @@ std::string toStringNamedFunction(const std::string& funcName, const FunctionTyp
         }
 
         if (!first)
-            state.emit(", ");
+        {
+            state.emit(",");
+            state.newline();
+        }
+        else if (opts.useLineBreaks)
+        {
+            state.newline();
+        }
         first = false;
 
         // We don't respect opts.functionTypeArguments
@@ -1333,7 +1341,14 @@ std::string toStringNamedFunction(const std::string& funcName, const FunctionTyp
         if (auto vtp = get<VariadicTypePack>(*argPackIter.tail()); !vtp || !vtp->hidden)
         {
             if (!first)
-                state.emit(", ");
+            {
+                state.emit(",");
+                state.newline();
+            }
+            else if (opts.useLineBreaks)
+            {
+                state.newline();
+            }
 
             state.emit("...: ");
 
@@ -1344,6 +1359,9 @@ std::string toStringNamedFunction(const std::string& funcName, const FunctionTyp
         }
     }
 
+    state.dedent();
+    if (!first && opts.useLineBreaks)
+        state.newline();
     state.emit("): ");
 
     size_t retSize = size(ftv.retTypes);

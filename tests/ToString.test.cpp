@@ -772,4 +772,129 @@ TEST_CASE_FIXTURE(Fixture, "toStringNamedFunction_hide_self_param")
     CHECK_EQ("foo:method<a>(arg: string): ()", toStringNamedFunction("foo:method", *ftv, opts));
 }
 
+TEST_CASE_FIXTURE(Fixture, "toStringNamedFunction_multiline_empty")
+{
+    CheckResult result = check(R"(
+        local function noop() end
+    )");
+
+    TypeId ty = requireType("noop");
+    const FunctionTypeVar* ftv = get<FunctionTypeVar>(follow(ty));
+
+    ToStringOptions opts;
+    opts.useLineBreaks = true;
+    opts.indent = true;
+    CHECK_EQ("noop(): ()", toStringNamedFunction("noop", *ftv, opts));
+}
+
+TEST_CASE_FIXTURE(Fixture, "toStringNamedFunction_multiline_single_arg")
+{
+    CheckResult result = check(R"(
+        local function apply(item: string) end
+    )");
+
+    TypeId ty = requireType("apply");
+    const FunctionTypeVar* ftv = get<FunctionTypeVar>(follow(ty));
+
+    ToStringOptions opts;
+    opts.useLineBreaks = true;
+    opts.indent = true;
+    CHECK_EQ("apply(\n"
+             "    item: string\n"
+             "): ()",
+        toStringNamedFunction("apply", *ftv, opts));
+}
+
+TEST_CASE_FIXTURE(Fixture, "toStringNamedFunction_multiline_args")
+{
+    CheckResult result = check(R"(
+        local function apply(first: string, second: number, third: number) end
+    )");
+
+    TypeId ty = requireType("apply");
+    const FunctionTypeVar* ftv = get<FunctionTypeVar>(follow(ty));
+
+    ToStringOptions opts;
+    opts.useLineBreaks = true;
+    opts.indent = true;
+    CHECK_EQ("apply(\n"
+             "    first: string,\n"
+             "    second: number,\n"
+             "    third: number\n"
+             "): ()",
+        toStringNamedFunction("apply", *ftv, opts));
+}
+
+TEST_CASE_FIXTURE(Fixture, "toStringNamedFunction_multiline_variadic")
+{
+    CheckResult result = check(R"(
+        local function apply(first: string, second: number, ...: number) end
+    )");
+
+    TypeId ty = requireType("apply");
+    const FunctionTypeVar* ftv = get<FunctionTypeVar>(follow(ty));
+
+    ToStringOptions opts;
+    opts.useLineBreaks = true;
+    opts.indent = true;
+    CHECK_EQ("apply(\n"
+             "    first: string,\n"
+             "    second: number,\n"
+             "    ...: number\n"
+             "): ()",
+        toStringNamedFunction("apply", *ftv, opts));
+}
+
+TEST_CASE_FIXTURE(Fixture, "toStringNamedFunction_multiline_table_arg")
+{
+    CheckResult result = check(R"(
+        local function apply(first: string, second: { x: number, y: number, z: number }, third: number) end
+    )");
+
+    TypeId ty = requireType("apply");
+    const FunctionTypeVar* ftv = get<FunctionTypeVar>(follow(ty));
+
+    ToStringOptions opts;
+    opts.useLineBreaks = true;
+    opts.indent = true;
+    CHECK_EQ("apply(\n"
+             "    first: string,\n"
+             "    second: {|\n"
+             "        x: number,\n"
+             "        y: number,\n"
+             "        z: number\n"
+             "    |},\n"
+             "    third: number\n"
+             "): ()",
+        toStringNamedFunction("apply", *ftv, opts));
+}
+
+TEST_CASE_FIXTURE(Fixture, "toStringNamedFunction_multiline_return")
+{
+    CheckResult result = check(R"(
+        local function apply(first: string, second: { x: number, y: number, z: number }, third: number)
+            return { success = true }
+        end
+    )");
+
+    TypeId ty = requireType("apply");
+    const FunctionTypeVar* ftv = get<FunctionTypeVar>(follow(ty));
+
+    ToStringOptions opts;
+    opts.useLineBreaks = true;
+    opts.indent = true;
+    CHECK_EQ("apply(\n"
+             "    first: string,\n"
+             "    second: {|\n"
+             "        x: number,\n"
+             "        y: number,\n"
+             "        z: number\n"
+             "    |},\n"
+             "    third: number\n"
+             "): {|\n"
+             "    success: boolean\n"
+             "|}",
+        toStringNamedFunction("apply", *ftv, opts));
+}
+
 TEST_SUITE_END();
