@@ -76,7 +76,7 @@ TEST_CASE("testBrokenEscapeTolerant")
     Lexer lexer(testInput.c_str(), testInput.size(), table);
     Lexeme item = lexer.next();
 
-    CHECK_EQ(item.type, Lexeme::SingleQuotedString);
+    CHECK_EQ(item.type, Lexeme::QuotedString);
     CHECK_EQ(item.location, Luau::Location(Luau::Position(0, 0), Luau::Position(0, int(testInput.size()))));
 }
 
@@ -149,7 +149,7 @@ TEST_CASE("string_interpolation_basic")
     CHECK_EQ(interpBegin.type, Lexeme::InterpStringBegin);
 
     Lexeme quote = lexer.next();
-    CHECK_EQ(quote.type, Lexeme::DoubleQuotedString);
+    CHECK_EQ(quote.type, Lexeme::QuotedString);
 
     Lexeme interpEnd = lexer.next();
     CHECK_EQ(interpEnd.type, Lexeme::InterpStringEnd);
@@ -167,7 +167,7 @@ TEST_CASE("string_interpolation_full")
     CHECK_EQ(interpBegin.toString(), "`foo {");
 
     Lexeme quote1 = lexer.next();
-    CHECK_EQ(quote1.type, Lexeme::DoubleQuotedString);
+    CHECK_EQ(quote1.type, Lexeme::QuotedString);
     CHECK_EQ(quote1.toString(), "\"bar\"");
 
     Lexeme interpMid = lexer.next();
@@ -175,7 +175,7 @@ TEST_CASE("string_interpolation_full")
     CHECK_EQ(interpMid.toString(), "} {");
 
     Lexeme quote2 = lexer.next();
-    CHECK_EQ(quote2.type, Lexeme::DoubleQuotedString);
+    CHECK_EQ(quote2.type, Lexeme::QuotedString);
     CHECK_EQ(quote2.toString(), "\"baz\"");
 
     Lexeme interpEnd = lexer.next();
@@ -226,7 +226,7 @@ TEST_CASE("string_interpolation_unmatched_brace")
 
     CHECK_EQ(lexer.next().type, '{');
     CHECK_EQ(lexer.next().type, Lexeme::InterpStringBegin);
-    CHECK_EQ(lexer.next().type, Lexeme::DoubleQuotedString);
+    CHECK_EQ(lexer.next().type, Lexeme::QuotedString);
     CHECK_EQ(lexer.next().type, Lexeme::BrokenString);
     CHECK_EQ(lexer.next().type, '}');
 }
@@ -250,7 +250,8 @@ TEST_CASE("single_quoted_string")
     Lexer lexer(testInput.c_str(), testInput.size(), table);
 
     Lexeme lexeme = lexer.next();
-    CHECK_EQ(lexeme.type, Lexeme::SingleQuotedString);
+    CHECK_EQ(lexeme.type, Lexeme::QuotedString);
+    CHECK_EQ(lexeme.getQuoteStyle(), Lexeme::QuoteStyle::Single);
     CHECK_EQ(lexeme.toString(), testInput);
 }
 
@@ -262,7 +263,8 @@ TEST_CASE("double_quoted_string")
     Lexer lexer(testInput.c_str(), testInput.size(), table);
 
     Lexeme lexeme = lexer.next();
-    CHECK_EQ(lexeme.type, Lexeme::DoubleQuotedString);
+    CHECK_EQ(lexeme.type, Lexeme::QuotedString);
+    CHECK_EQ(lexeme.getQuoteStyle(), Lexeme::QuoteStyle::Double);
     CHECK_EQ(lexeme.toString(), testInput);
 }
 
