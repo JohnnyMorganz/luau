@@ -252,7 +252,7 @@ static Error parseJson(const std::string& contents, Action action)
                 else if (lexer.current().type != '}')
                     return fail(lexer, "',' or '}'");
             }
-            else if (lexer.current().type == Lexeme::QuotedString)
+            else if (lexer.current().type == Lexeme::SingleQuotedString || lexer.current().type == Lexeme::DoubleQuotedString)
             {
                 std::string value(lexer.current().data, lexer.current().getLength());
                 next(lexer);
@@ -289,7 +289,7 @@ static Error parseJson(const std::string& contents, Action action)
                 else if (lexer.current().type != '}')
                     return fail(lexer, "',' or '}'");
             }
-            else if (lexer.current().type == Lexeme::QuotedString)
+            else if (lexer.current().type == Lexeme::SingleQuotedString || lexer.current().type == Lexeme::DoubleQuotedString)
             {
                 std::string key(lexer.current().data, lexer.current().getLength());
                 next(lexer);
@@ -305,9 +305,9 @@ static Error parseJson(const std::string& contents, Action action)
                     arrayTop = (lexer.current().type == '[');
                     next(lexer);
                 }
-                else if (lexer.current().type == Lexeme::QuotedString || lexer.current().type == Lexeme::ReservedTrue || lexer.current().type == Lexeme::ReservedFalse)
+                else if (lexer.current().type == Lexeme::SingleQuotedString || lexer.current().type == Lexeme::DoubleQuotedString || lexer.current().type == Lexeme::ReservedTrue || lexer.current().type == Lexeme::ReservedFalse)
                 {
-                    std::string value = lexer.current().type == Lexeme::QuotedString
+                    std::string value = (lexer.current().type == Lexeme::SingleQuotedString || lexer.current().type == Lexeme::DoubleQuotedString)
                                             ? std::string(lexer.current().data, lexer.current().getLength())
                                             : (lexer.current().type == Lexeme::ReservedTrue ? "true" : "false");
                     next(lexer);
