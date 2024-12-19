@@ -47,8 +47,7 @@ struct Lexeme
         ConcatAssign,
 
         RawString,
-        SingleQuotedString,
-        DoubleQuotedString,
+        QuotedString,
         Number,
         Name,
 
@@ -89,6 +88,12 @@ struct Lexeme
         Reserved_END
     };
 
+    enum struct QuoteStyle
+    {
+        Single,
+        Double,
+    };
+
     Type type;
     Location location;
 
@@ -114,6 +119,7 @@ public:
 
     unsigned int getLength() const;
     unsigned int getBlockDepth() const;
+    QuoteStyle getQuoteStyle() const;
 
     std::string toString() const;
 };

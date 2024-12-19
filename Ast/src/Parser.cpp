@@ -1114,7 +1114,7 @@ AstStat* Parser::parseDeclaration(const Location& start, const AstArray<AstAttr*
             {
                 props.push_back(parseDeclaredClassMethod());
             }
-            else if (lexer.current().type == '[' && (lexer.lookahead().type == Lexeme::RawString || lexer.lookahead().type == Lexeme::SingleQuotedString || lexer.lookahead().type == Lexeme::DoubleQuotedString))
+            else if (lexer.current().type == '[' && (lexer.lookahead().type == Lexeme::RawString || lexer.lookahead().type == Lexeme::QuotedString))
             {
                 const Lexeme begin = lexer.current();
                 nextLexeme(); // [
@@ -1629,7 +1629,7 @@ AstType* Parser::parseTableType(bool inDeclarationContext)
             }
         }
 
-        if (lexer.current().type == '[' && (lexer.lookahead().type == Lexeme::RawString || lexer.lookahead().type == Lexeme::SingleQuotedString || lexer.lookahead().type == Lexeme::DoubleQuotedString))
+        if (lexer.current().type == '[' && (lexer.lookahead().type == Lexeme::RawString || lexer.lookahead().type == Lexeme::QuotedString))
         {
             const Lexeme begin = lexer.current();
             nextLexeme(); // [
@@ -1974,7 +1974,7 @@ AstTypeOrPack Parser::parseSimpleType(bool allowPack, bool inDeclarationContext)
         nextLexeme();
         return {allocator.alloc<AstTypeSingletonBool>(start, false)};
     }
-    else if (lexer.current().type == Lexeme::RawString || lexer.current().type == Lexeme::SingleQuotedString || lexer.current().type == Lexeme::DoubleQuotedString)
+    else if (lexer.current().type == Lexeme::RawString || lexer.current().type == Lexeme::QuotedString)
     {
         if (std::optional<AstArray<char>> value = parseCharArray())
         {
@@ -2443,7 +2443,7 @@ AstExpr* Parser::parsePrimaryExpr(bool asStatement)
 
             expr = parseFunctionArgs(expr, false);
         }
-        else if (lexer.current().type == '{' || lexer.current().type == Lexeme::RawString || lexer.current().type == Lexeme::SingleQuotedString || lexer.current().type == Lexeme::DoubleQuotedString)
+        else if (lexer.current().type == '{' || lexer.current().type == Lexeme::RawString || lexer.current().type == Lexeme::QuotedString)
         {
             expr = parseFunctionArgs(expr, false);
         }
@@ -2587,7 +2587,7 @@ AstExpr* Parser::parseSimpleExpr()
     {
         return parseNumber();
     }
-    else if (lexer.current().type == Lexeme::RawString || lexer.current().type == Lexeme::SingleQuotedString || lexer.current().type == Lexeme::DoubleQuotedString || lexer.current().type == Lexeme::InterpStringSimple)
+    else if (lexer.current().type == Lexeme::RawString || lexer.current().type == Lexeme::QuotedString || lexer.current().type == Lexeme::InterpStringSimple)
     {
         return parseString();
     }
@@ -2666,7 +2666,7 @@ AstExpr* Parser::parseFunctionArgs(AstExpr* func, bool self)
 
         return allocator.alloc<AstExprCall>(Location(func->location, expr->location), func, copy(&expr, 1), self, Location(argStart, argEnd));
     }
-    else if (lexer.current().type == Lexeme::RawString || lexer.current().type == Lexeme::SingleQuotedString || lexer.current().type == Lexeme::DoubleQuotedString)
+    else if (lexer.current().type == Lexeme::RawString || lexer.current().type == Lexeme::QuotedString)
     {
         Location argLocation = lexer.current().location;
         AstExpr* expr = parseString();
@@ -3073,13 +3073,13 @@ AstArray<AstTypeOrPack> Parser::parseTypeParams()
 std::optional<AstArray<char>> Parser::parseCharArray()
 {
     LUAU_ASSERT(
-        lexer.current().type == Lexeme::SingleQuotedString || lexer.current().type == Lexeme::DoubleQuotedString || lexer.current().type == Lexeme::RawString ||
+        lexer.current().type == Lexeme::QuotedString || lexer.current().type == Lexeme::RawString ||
         lexer.current().type == Lexeme::InterpStringSimple
     );
 
     scratchData.assign(lexer.current().data, lexer.current().getLength());
 
-    if (lexer.current().type == Lexeme::SingleQuotedString || lexer.current().type == Lexeme::DoubleQuotedString || lexer.current().type == Lexeme::InterpStringSimple)
+    if (lexer.current().type == Lexeme::QuotedString || lexer.current().type == Lexeme::InterpStringSimple)
     {
         if (!Lexer::fixupQuotedString(scratchData))
         {
@@ -3104,8 +3104,7 @@ AstExpr* Parser::parseString()
     AstExprConstantString::QuoteStyle style;
     switch (lexer.current().type)
     {
-    case Lexeme::SingleQuotedString:
-    case Lexeme::DoubleQuotedString:
+    case Lexeme::QuotedString:
     case Lexeme::InterpStringSimple:
         style = AstExprConstantString::QuotedSimple;
         break;

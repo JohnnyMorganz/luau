@@ -36,7 +36,7 @@ Lexeme::Lexeme(const Location& location, Type type, const char* data, size_t siz
     , data(data)
 {
     LUAU_ASSERT(
-        type == RawString || type == SingleQuotedString || type == DoubleQuotedString || type == InterpStringBegin || type == InterpStringMid || type == InterpStringEnd ||
+        type == RawString || type == QuotedString || type == InterpStringBegin || type == InterpStringMid || type == InterpStringEnd ||
         type == InterpStringSimple || type == BrokenInterpDoubleBrace || type == Number || type == Comment || type == BlockComment || type == Whitespace
     );
 }
@@ -53,7 +53,7 @@ Lexeme::Lexeme(const Location& location, Type type, const char* name)
 unsigned int Lexeme::getLength() const
 {
     LUAU_ASSERT(
-        type == RawString || type == SingleQuotedString || type == DoubleQuotedString || type == InterpStringBegin || type == InterpStringMid || type == InterpStringEnd ||
+        type == RawString || type == QuotedString || type == InterpStringBegin || type == InterpStringMid || type == InterpStringEnd ||
         type == InterpStringSimple || type == BrokenInterpDoubleBrace || type == Number || type == Comment || type == BlockComment || type == Whitespace
     );
 
@@ -128,11 +128,11 @@ std::string Lexeme::toString() const
         return data ? "[" + block + "[" + format("%.*s", length, data) + "]" + block + "]" : "string";
     }
 
-    case SingleQuotedString:
-        return data ? format("'%.*s'", length, data) : "string";
-
-    case DoubleQuotedString:
-        return data ? format("\"%.*s\"", length, data) : "string";
+    case QuotedString:
+    {
+        const char quote = getQuoteStyle() == QuoteStyle::Double ? '"' : '\'';
+        return data ? format("%c%.*s%c", quote, length, data, quote) : "string";
+    }
 
     case InterpStringBegin:
         return data ? format("`%.*s{", length, data) : "the beginning of an interpolated string";
@@ -472,6 +472,22 @@ unsigned int Lexeme::getBlockDepth() const
     // return totalLastLineLength - lastLineLength - 2;
 }
 
+Lexeme::QuoteStyle Lexeme::getQuoteStyle() const
+{
+    LUAU_ASSERT(type == Lexeme::QuotedString);
+
+    // If we have a well-formed string, we are guaranteed to see a closing delimiter after the string
+    LUAU_ASSERT(data);
+
+    char quote = *(data + length);
+    if (quote == '\'')
+        return Lexeme::QuoteStyle::Single;
+    else if (quote == '"')
+        return Lexeme::QuoteStyle::Double;
+
+    LUAU_ASSERT(!"Unknown quote style");
+}
+
 Lexer::Lexer(const char* buffer, size_t bufferSize, AstNameTable& names, Position startPosition)
     : buffer(buffer)
     , bufferSize(bufferSize)
@@ -751,10 +767,7 @@ Lexeme Lexer::readQuotedString()
 
     consume();
 
-    if (delimiter == '\'')
-        return Lexeme(Location(start, position()), Lexeme::SingleQuotedString, &buffer[startOffset], offset - startOffset - 1);
-    else
-        return Lexeme(Location(start, position()), Lexeme::DoubleQuotedString, &buffer[startOffset], offset - startOffset - 1);
+    return Lexeme(Location(start, position()), Lexeme::QuotedString, &buffer[startOffset], offset - startOffset - 1);
 }
 
 Lexeme Lexer::readInterpolatedStringBegin()
