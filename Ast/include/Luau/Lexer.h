@@ -47,7 +47,8 @@ struct Lexeme
         ConcatAssign,
 
         RawString,
-        QuotedString,
+        SingleQuotedString,
+        DoubleQuotedString,
         Number,
         Name,
 
@@ -112,6 +113,7 @@ public:
     Lexeme(const Location& location, Type type, const char* name);
 
     unsigned int getLength() const;
+    unsigned int getBlockDepth() const;
 
     std::string toString() const;
 };

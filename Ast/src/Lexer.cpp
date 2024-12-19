@@ -36,7 +36,7 @@ Lexeme::Lexeme(const Location& location, Type type, const char* data, size_t siz
     , data(data)
 {
     LUAU_ASSERT(
-        type == RawString || type == QuotedString || type == InterpStringBegin || type == InterpStringMid || type == InterpStringEnd ||
+        type == RawString || type == SingleQuotedString || type == DoubleQuotedString || type == InterpStringBegin || type == InterpStringMid || type == InterpStringEnd ||
         type == InterpStringSimple || type == BrokenInterpDoubleBrace || type == Number || type == Comment || type == BlockComment || type == Whitespace
     );
 }
@@ -53,7 +53,7 @@ Lexeme::Lexeme(const Location& location, Type type, const char* name)
 unsigned int Lexeme::getLength() const
 {
     LUAU_ASSERT(
-        type == RawString || type == QuotedString || type == InterpStringBegin || type == InterpStringMid || type == InterpStringEnd ||
+        type == RawString || type == SingleQuotedString || type == DoubleQuotedString || type == InterpStringBegin || type == InterpStringMid || type == InterpStringEnd ||
         type == InterpStringSimple || type == BrokenInterpDoubleBrace || type == Number || type == Comment || type == BlockComment || type == Whitespace
     );
 
@@ -63,6 +63,7 @@ unsigned int Lexeme::getLength() const
 static const char* kReserved[] = {"and",   "break", "do",  "else", "elseif", "end",    "false", "for",  "function", "if",   "in",
                                   "local", "nil",   "not", "or",   "repeat", "return", "then",  "true", "until",    "while"};
 
+// TODO: move into a print function and keep toString intact
 std::string Lexeme::toString() const
 {
     switch (type)
@@ -71,58 +72,66 @@ std::string Lexeme::toString() const
         return "<eof>";
 
     case Equal:
-        return "'=='";
+        return "==";
 
     case LessEqual:
-        return "'<='";
+        return "<=";
 
     case GreaterEqual:
-        return "'>='";
+        return ">=";
 
     case NotEqual:
-        return "'~='";
+        return "~=";
 
     case Dot2:
-        return "'..'";
+        return "..";
 
     case Dot3:
-        return "'...'";
+        return "...";
 
     case SkinnyArrow:
-        return "'->'";
+        return "->";
 
     case DoubleColon:
-        return "'::'";
+        return "::";
 
     case FloorDiv:
-        return "'//'";
+        return "//";
 
     case AddAssign:
-        return "'+='";
+        return "+=";
 
     case SubAssign:
-        return "'-='";
+        return "-=";
 
     case MulAssign:
-        return "'*='";
+        return "*=";
 
     case DivAssign:
-        return "'/='";
+        return "/=";
 
     case FloorDivAssign:
-        return "'//='";
+        return "//=";
 
     case ModAssign:
-        return "'%='";
+        return "%=";
 
     case PowAssign:
-        return "'^='";
+        return "^=";
 
     case ConcatAssign:
-        return "'..='";
+        return "..=";
 
     case RawString:
-    case QuotedString:
+    {
+        const std::string block = std::string(getBlockDepth(), '=');
+        return data ? "[" + block + "[" + format("%.*s", length, data) + "]" + block + "]" : "string";
+    }
+
+    case SingleQuotedString:
+        return data ? format("'%.*s'", length, data) : "string";
+
+    case DoubleQuotedString:
         return data ? format("\"%.*s\"", length, data) : "string";
 
     case InterpStringBegin:
@@ -138,16 +147,25 @@ std::string Lexeme::toString() const
         return data ? format("`%.*s`", length, data) : "interpolated string";
 
     case Number:
-        return data ? format("'%.*s'", length, data) : "number";
+        return data ? format("%.*s", length, data) : "number";
 
     case Name:
-        return name ? format("'%s'", name) : "identifier";
+        return name ? format("%s", name) : "identifier";
 
     case Comment:
-        return "comment";
+        return data ? format("--%.*s", length, data) : "-- comment";
+
+    case BlockComment:
+    {
+        const std::string block = std::string(getBlockDepth(), '=');
+        return data ? "--[" + block + "[" + format("%.*s", length, data) + "]" + block + "]" : "string";
+    }
+
+    case Whitespace:
+        return data ? format("%.*s", length, data) : "<whitespace>";
 
     case Attribute:
-        return name ? format("'%s'", name) : "attribute";
+        return name ? format("%s", name) : "attribute";
 
     case BrokenString:
         return "malformed string";
@@ -173,13 +191,131 @@ std::string Lexeme::toString() const
 
     default:
         if (type < Char_END)
-            return format("'%c'", type);
+            return format("%c", type);
         else if (type >= Reserved_BEGIN && type < Reserved_END)
-            return format("'%s'", kReserved[type - Reserved_BEGIN]);
+            return format("%s", kReserved[type - Reserved_BEGIN]);
         else
             return "<unknown>";
     }
 }
+
+// std::string Lexeme::toString() const
+// {
+//     switch (type)
+//     {
+//     case Eof:
+//         return "<eof>";
+//
+//     case Equal:
+//         return "'=='";
+//
+//     case LessEqual:
+//         return "'<='";
+//
+//     case GreaterEqual:
+//         return "'>='";
+//
+//     case NotEqual:
+//         return "'~='";
+//
+//     case Dot2:
+//         return "'..'";
+//
+//     case Dot3:
+//         return "'...'";
+//
+//     case SkinnyArrow:
+//         return "'->'";
+//
+//     case DoubleColon:
+//         return "'::'";
+//
+//     case FloorDiv:
+//         return "'//'";
+//
+//     case AddAssign:
+//         return "'+='";
+//
+//     case SubAssign:
+//         return "'-='";
+//
+//     case MulAssign:
+//         return "'*='";
+//
+//     case DivAssign:
+//         return "'/='";
+//
+//     case FloorDivAssign:
+//         return "'//='";
+//
+//     case ModAssign:
+//         return "'%='";
+//
+//     case PowAssign:
+//         return "'^='";
+//
+//     case ConcatAssign:
+//         return "'..='";
+//
+//     case RawString:
+//     case QuotedString:
+//         return data ? format("\"%.*s\"", length, data) : "string";
+//
+//     case InterpStringBegin:
+//         return data ? format("`%.*s{", length, data) : "the beginning of an interpolated string";
+//
+//     case InterpStringMid:
+//         return data ? format("}%.*s{", length, data) : "the middle of an interpolated string";
+//
+//     case InterpStringEnd:
+//         return data ? format("}%.*s`", length, data) : "the end of an interpolated string";
+//
+//     case InterpStringSimple:
+//         return data ? format("`%.*s`", length, data) : "interpolated string";
+//
+//     case Number:
+//         return data ? format("'%.*s'", length, data) : "number";
+//
+//     case Name:
+//         return name ? format("'%s'", name) : "identifier";
+//
+//     case Comment:
+//         return "comment";
+//
+//     case Attribute:
+//         return name ? format("'%s'", name) : "attribute";
+//
+//     case BrokenString:
+//         return "malformed string";
+//
+//     case BrokenComment:
+//         return "unfinished comment";
+//
+//     case BrokenInterpDoubleBrace:
+//         return "'{{', which is invalid (did you mean '\\{'?)";
+//
+//     case BrokenUnicode:
+//         if (codepoint)
+//         {
+//             if (const char* confusable = findConfusable(codepoint))
+//                 return format("Unicode character U+%x (did you mean '%s'?)", codepoint, confusable);
+//
+//             return format("Unicode character U+%x", codepoint);
+//         }
+//         else
+//         {
+//             return "invalid UTF-8 sequence";
+//         }
+//
+//     default:
+//         if (type < Char_END)
+//             return format("'%c'", type);
+//         else if (type >= Reserved_BEGIN && type < Reserved_END)
+//             return format("'%s'", kReserved[type - Reserved_BEGIN]);
+//         else
+//             return "<unknown>";
+//     }
+// }
 
 bool AstNameTable::Entry::operator==(const Entry& other) const
 {
@@ -303,6 +439,37 @@ static char unescape(char ch)
     default:
         return ch;
     }
+}
+
+unsigned int Lexeme::getBlockDepth() const
+{
+    LUAU_ASSERT(type == Lexeme::RawString || type == Lexeme::BlockComment);
+
+    // If we have a well-formed string, we are guaranteed to see 2 `]` characters after the end of the string contents
+    LUAU_ASSERT(*(data + length) == ']');
+    unsigned int depth = 0;
+    do
+    {
+        depth++;
+    } while (*(data + length + depth) != ']');
+
+    return depth - 1;
+
+    // unsigned int index = 0;
+    // unsigned int lastLineLength = 0;
+    //
+    // while (index < length)
+    // {
+    //     lastLineLength++;
+    //     if (isNewline(*(data + index)))
+    //         lastLineLength = 0;
+    //     index++;
+    // }
+    //
+    // // 2: ]]
+    // unsigned int totalLastLineLength = location.end.line == location.begin.line ? location.end.column - location.begin.column - 2 : location.end.column;
+    // LUAU_ASSERT(totalLastLineLength >= lastLineLength + 2);
+    // return totalLastLineLength - lastLineLength - 2;
 }
 
 Lexer::Lexer(const char* buffer, size_t bufferSize, AstNameTable& names, Position startPosition)
@@ -584,7 +751,10 @@ Lexeme Lexer::readQuotedString()
 
     consume();
 
-    return Lexeme(Location(start, position()), Lexeme::QuotedString, &buffer[startOffset], offset - startOffset - 1);
+    if (delimiter == '\'')
+        return Lexeme(Location(start, position()), Lexeme::SingleQuotedString, &buffer[startOffset], offset - startOffset - 1);
+    else
+        return Lexeme(Location(start, position()), Lexeme::DoubleQuotedString, &buffer[startOffset], offset - startOffset - 1);
 }
 
 Lexeme Lexer::readInterpolatedStringBegin()

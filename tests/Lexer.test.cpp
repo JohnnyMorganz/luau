@@ -78,7 +78,7 @@ TEST_CASE("testBrokenEscapeTolerant")
     Lexer lexer(testInput.c_str(), testInput.size(), table);
     Lexeme item = lexer.next();
 
-    CHECK_EQ(item.type, Lexeme::QuotedString);
+    CHECK_EQ(item.type, Lexeme::SingleQuotedString);
     CHECK_EQ(item.location, Luau::Location(Luau::Position(0, 0), Luau::Position(0, int(testInput.size()))));
 }
 
@@ -151,7 +151,7 @@ TEST_CASE("string_interpolation_basic")
     CHECK_EQ(interpBegin.type, Lexeme::InterpStringBegin);
 
     Lexeme quote = lexer.next();
-    CHECK_EQ(quote.type, Lexeme::QuotedString);
+    CHECK_EQ(quote.type, Lexeme::DoubleQuotedString);
 
     Lexeme interpEnd = lexer.next();
     CHECK_EQ(interpEnd.type, Lexeme::InterpStringEnd);
@@ -169,7 +169,7 @@ TEST_CASE("string_interpolation_full")
     CHECK_EQ(interpBegin.toString(), "`foo {");
 
     Lexeme quote1 = lexer.next();
-    CHECK_EQ(quote1.type, Lexeme::QuotedString);
+    CHECK_EQ(quote1.type, Lexeme::DoubleQuotedString);
     CHECK_EQ(quote1.toString(), "\"bar\"");
 
     Lexeme interpMid = lexer.next();
@@ -177,7 +177,7 @@ TEST_CASE("string_interpolation_full")
     CHECK_EQ(interpMid.toString(), "} {");
 
     Lexeme quote2 = lexer.next();
-    CHECK_EQ(quote2.type, Lexeme::QuotedString);
+    CHECK_EQ(quote2.type, Lexeme::DoubleQuotedString);
     CHECK_EQ(quote2.toString(), "\"baz\"");
 
     Lexeme interpEnd = lexer.next();
@@ -228,7 +228,7 @@ TEST_CASE("string_interpolation_unmatched_brace")
 
     CHECK_EQ(lexer.next().type, '{');
     CHECK_EQ(lexer.next().type, Lexeme::InterpStringBegin);
-    CHECK_EQ(lexer.next().type, Lexeme::QuotedString);
+    CHECK_EQ(lexer.next().type, Lexeme::DoubleQuotedString);
     CHECK_EQ(lexer.next().type, Lexeme::BrokenString);
     CHECK_EQ(lexer.next().type, '}');
 }
@@ -304,6 +304,249 @@ TEST_CASE("lexer_tokenizes_multiline_whitespace")
     CHECK_EQ(std::string(multilineSpace2.data, multilineSpace2.getLength()), std::string("\n    "));
 
     CHECK_EQ(lexer.next().type, Lexeme::Eof);
+}
+
+TEST_CASE("single_quoted_string")
+{
+    const std::string testInput = "'test'";
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+
+    Lexeme lexeme = lexer.next();
+    CHECK_EQ(lexeme.type, Lexeme::SingleQuotedString);
+    CHECK_EQ(lexeme.toString(), testInput);
+}
+
+TEST_CASE("double_quoted_string")
+{
+    const std::string testInput = R"("test")";
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+
+    Lexeme lexeme = lexer.next();
+    CHECK_EQ(lexeme.type, Lexeme::DoubleQuotedString);
+    CHECK_EQ(lexeme.toString(), testInput);
+}
+
+TEST_CASE("lexer_determines_string_block_depth_0")
+{
+    const std::string testInput = "[[ test ]]";
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+
+    Lexeme lexeme = lexer.next();
+    REQUIRE_EQ(lexeme.type, Lexeme::RawString);
+    CHECK_EQ(lexeme.getBlockDepth(), 0);
+    CHECK_EQ(lexeme.toString(), testInput);
+}
+
+TEST_CASE("lexer_determines_string_block_depth_0_multiline_1")
+{
+    const std::string testInput = R"([[ test
+    ]])";
+
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+
+    Lexeme lexeme = lexer.next();
+    REQUIRE_EQ(lexeme.type, Lexeme::RawString);
+    CHECK_EQ(lexeme.getBlockDepth(), 0);
+    CHECK_EQ(lexeme.toString(), testInput);
+}
+
+TEST_CASE("lexer_determines_string_block_depth_0_multiline_2")
+{
+    const std::string testInput = R"([[
+    test
+    ]])";
+
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+
+    Lexeme lexeme = lexer.next();
+    REQUIRE_EQ(lexeme.type, Lexeme::RawString);
+    CHECK_EQ(lexeme.getBlockDepth(), 0);
+    CHECK_EQ(lexeme.toString(), testInput);
+}
+
+TEST_CASE("lexer_determines_string_block_depth_0_multiline_3")
+{
+    const std::string testInput = R"([[
+    test ]])";
+
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+
+    Lexeme lexeme = lexer.next();
+    REQUIRE_EQ(lexeme.type, Lexeme::RawString);
+    CHECK_EQ(lexeme.getBlockDepth(), 0);
+    CHECK_EQ(lexeme.toString(), testInput);
+}
+
+TEST_CASE("lexer_determines_string_block_depth_1")
+{
+    const std::string testInput = "[=[[%s]]=]";
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+
+    Lexeme lexeme = lexer.next();
+    REQUIRE_EQ(lexeme.type, Lexeme::RawString);
+    CHECK_EQ(lexeme.getBlockDepth(), 1);
+    CHECK_EQ(lexeme.toString(), testInput);
+}
+
+TEST_CASE("lexer_determines_string_block_depth_2")
+{
+    const std::string testInput = "[==[ test ]==]";
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+
+    Lexeme lexeme = lexer.next();
+    REQUIRE_EQ(lexeme.type, Lexeme::RawString);
+    CHECK_EQ(lexeme.getBlockDepth(), 2);
+    CHECK_EQ(lexeme.toString(), testInput);
+}
+
+TEST_CASE("lexer_determines_string_block_depth_2_multiline_1")
+{
+    const std::string testInput = R"([==[ test
+    ]==])";
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+
+    Lexeme lexeme = lexer.next();
+    REQUIRE_EQ(lexeme.type, Lexeme::RawString);
+    CHECK_EQ(lexeme.getBlockDepth(), 2);
+    CHECK_EQ(lexeme.toString(), testInput);
+}
+
+TEST_CASE("lexer_determines_string_block_depth_2_multiline_2")
+{
+    const std::string testInput = R"([==[
+    test
+    ]==])";
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+
+    Lexeme lexeme = lexer.next();
+    REQUIRE_EQ(lexeme.type, Lexeme::RawString);
+    CHECK_EQ(lexeme.getBlockDepth(), 2);
+    CHECK_EQ(lexeme.toString(), testInput);
+}
+
+TEST_CASE("lexer_determines_string_block_depth_2_multiline_3")
+{
+    const std::string testInput = R"([==[
+
+    test ]==])";
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+
+    Lexeme lexeme = lexer.next();
+    REQUIRE_EQ(lexeme.type, Lexeme::RawString);
+    CHECK_EQ(lexeme.getBlockDepth(), 2);
+    CHECK_EQ(lexeme.toString(), testInput);
+}
+
+
+TEST_CASE("lexer_determines_comment_block_depth_0")
+{
+    const std::string testInput = "--[[ test ]]";
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+
+    Lexeme lexeme = lexer.next();
+    REQUIRE_EQ(lexeme.type, Lexeme::BlockComment);
+    CHECK_EQ(lexeme.getBlockDepth(), 0);
+    CHECK_EQ(lexeme.toString(), testInput);
+}
+
+TEST_CASE("lexer_determines_string_block_depth_1")
+{
+    const std::string testInput = "--[=[ μέλλον ]=]";
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+
+    Lexeme lexeme = lexer.next();
+    REQUIRE_EQ(lexeme.type, Lexeme::BlockComment);
+    CHECK_EQ(lexeme.getBlockDepth(), 1);
+    CHECK_EQ(lexeme.toString(), testInput);
+}
+
+TEST_CASE("lexer_determines_string_block_depth_2")
+{
+    const std::string testInput = "--[==[ test ]==]";
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+
+    Lexeme lexeme = lexer.next();
+    REQUIRE_EQ(lexeme.type, Lexeme::BlockComment);
+    CHECK_EQ(lexeme.getBlockDepth(), 2);
+    CHECK_EQ(lexeme.toString(), testInput);
+}
+
+TEST_CASE("lexer_preserves_all_input")
+{
+    ScopedFastFlag sff{FFlag::LuauLexerTokenizesWhitespace, true};
+    const std::string testInput = R"(
+        local a = 1
+        local b = -1
+        local c = 1.0
+        local d = 0x01
+        local e = 0b01
+        local f = 1e9
+        local g = 1e-9
+
+        local b = 'single quoted string'
+        local c = "double quoted string"
+        local d = `interpolated string`
+        local e = [[
+            multiline string
+        ]]
+        local f = [==[ another multiline
+        string ]==]
+
+        --[[ multiline
+        doc comment
+        --]]
+
+        --[==[ another multiline
+        comment --]==]
+
+        for i, v in pairs(foo) do
+            -- this is a function call:
+            print(i, v)
+        end
+    )";
+
+    Luau::Allocator alloc;
+    AstNameTable table(alloc);
+    Lexer lexer(testInput.c_str(), testInput.size(), table);
+    lexer.setSkipWhitespace(false);
+
+    std::string output;
+    Lexeme lexeme = lexer.next();
+    while (lexeme.type != Lexeme::Eof)
+    {
+        output += lexeme.toString();
+        lexeme = lexer.next();
+    }
+
+    CHECK_EQ(testInput, output);
 }
 
 TEST_SUITE_END();
