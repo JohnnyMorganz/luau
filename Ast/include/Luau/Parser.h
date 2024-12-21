@@ -451,6 +451,7 @@ private:
     std::vector<AstGenericType> scratchGenericTypes;
     std::vector<AstGenericTypePack> scratchGenericTypePacks;
     std::vector<std::optional<AstArgumentName>> scratchOptArgName;
+    std::vector<CstExprTable::Separator> scratchSeparator;
     std::string scratchData;
 
     CstNodeMap cstNodeMap;

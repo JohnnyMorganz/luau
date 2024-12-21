@@ -2720,6 +2720,7 @@ LUAU_NOINLINE void Parser::reportAmbiguousCallError()
 AstExpr* Parser::parseTableConstructor()
 {
     TempVector<AstExprTable::Item> items(scratchItem);
+    TempVector<CstExprTable::Separator> separators(scratchSeparator);
 
     Location start = lexer.current().location;
 
@@ -2773,6 +2774,10 @@ AstExpr* Parser::parseTableConstructor()
 
         if (lexer.current().type == ',' || lexer.current().type == ';')
         {
+            if (lexer.current().type == ',')
+                separators.push_back(CstExprTable::Comma);
+            else
+                separators.push_back(CstExprTable::Semicolon);
             nextLexeme();
         }
         else if ((lexer.current().type == '[' || lexer.current().type == Lexeme::Name) && lexer.current().location.begin.column == lastElementIndent)
@@ -2790,7 +2795,9 @@ AstExpr* Parser::parseTableConstructor()
     if (!expectMatchAndConsume('}', matchBrace))
         end = lexer.previousLocation();
 
-    return allocator.alloc<AstExprTable>(Location(start, end), copy(items));
+    AstExprTable* node = allocator.alloc<AstExprTable>(Location(start, end), copy(items));
+    cstNodeMap[node] = allocator.alloc<CstExprTable>(copy(separators));
+    return node;
 }
 
 AstExpr* Parser::parseIfElseExpr()

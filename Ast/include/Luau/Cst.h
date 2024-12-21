@@ -111,4 +111,20 @@ public:
     bool hasTrailingParens;
 };
 
+class CstExprTable : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstExprTable)
+
+    enum Separator
+    {
+        Comma,
+        Semicolon,
+    };
+
+    CstExprTable(const AstArray<Separator>& separators);
+
+    AstArray<Separator> separators;
+};
+
 }

@@ -27,4 +27,10 @@ CstExprCall::CstExprCall(bool hasLeadingParens, bool hasTrailingParens)
     , hasTrailingParens(hasTrailingParens)
 {
 }
+
+CstExprTable::CstExprTable(const AstArray<Separator>& separators)
+    : CstNode(CstClassIndex())
+    , separators(separators)
+{
+}
 }

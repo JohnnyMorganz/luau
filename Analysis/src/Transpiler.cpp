@@ -467,14 +467,25 @@ struct Printer
         {
             writer.symbol("{");
 
+            const CstExprTable::Separator* separators = nullptr;
+            const CstExprTable::Separator* separatorsEnd = nullptr;
+            if (const auto& c = cstNodeMap[a])
+            {
+                separators = c->as<CstExprTable>()->separators.begin();
+                separatorsEnd = c->as<CstExprTable>()->separators.end();
+            }
+
             bool first = true;
 
             for (const auto& item : a->items)
             {
-                if (first)
-                    first = false;
-                else
-                    writer.symbol(",");
+                if (!separators)
+                {
+                    if (first)
+                        first = false;
+                    else
+                        writer.symbol(",");
+                }
 
                 switch (item.kind)
                 {
@@ -507,6 +518,15 @@ struct Printer
 
                 advance(item.value->location.begin);
                 visualize(*item.value);
+
+                if (separators && separators != separatorsEnd)
+                {
+                    if (*separators == CstExprTable::Comma)
+                        writer.symbol(",");
+                    else
+                        writer.symbol(";");
+                    separators++;
+                }
             }
 
             Position endPos = expr.location.end;

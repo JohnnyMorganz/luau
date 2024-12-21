@@ -184,6 +184,24 @@ TEST_CASE("table_literal_closing_brace_at_correct_position")
     CHECK_EQ(code, transpile(code).code);
 }
 
+TEST_CASE("table_literal_with_semicolon_separators")
+{
+    const std::string code = R"(
+        local t = { x = 1; y = 2 }
+    )";
+
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("table_literal_with_trailing_separators")
+{
+    const std::string code = R"(
+        local t = { x = 1, y = 2, }
+    )";
+
+    CHECK_EQ(code, transpile(code).code);
+}
+
 TEST_CASE("method_calls")
 {
     const std::string code = R"( foo.bar.baz:quux() )";
