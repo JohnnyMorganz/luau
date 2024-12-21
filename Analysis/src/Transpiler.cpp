@@ -50,6 +50,7 @@ struct Writer
     virtual void symbol(std::string_view) = 0;
     virtual void literal(std::string_view) = 0;
     virtual void string(std::string_view) = 0;
+    virtual void sourceString(std::string_view, CstExprConstantString::QuoteStyle quoteStyle, unsigned int blockDepth) = 0;
 };
 
 struct StringWriter : Writer
@@ -160,6 +161,45 @@ struct StringWriter : Writer
         write(quote);
         write(escape(s));
         write(quote);
+    }
+
+    void sourceString(std::string_view s, CstExprConstantString::QuoteStyle quoteStyle, unsigned int blockDepth) override
+    {
+        if (quoteStyle == CstExprConstantString::QuotedRaw)
+        {
+            auto blocks = std::string(blockDepth, '=');
+            write('[');
+            write(blocks);
+            write('[');
+            write(s);
+            write(']');
+            write(blocks);
+            write(']');
+        }
+        else
+        {
+            LUAU_ASSERT(blockDepth == 0);
+
+            char quote = '"';
+            switch (quoteStyle)
+            {
+            case CstExprConstantString::QuotedDouble:
+                quote = '"';
+                break;
+            case CstExprConstantString::QuotedSingle:
+                quote = '\'';
+                break;
+            case CstExprConstantString::QuotedInterp:
+                quote = '`';
+                break;
+            default:
+                LUAU_ASSERT(!"Unhandled quote type");
+            }
+
+            write(quote);
+            write(s);
+            write(quote);
+        }
     }
 };
 
@@ -346,7 +386,13 @@ struct Printer
         }
         else if (const auto& a = expr.as<AstExprConstantString>())
         {
-            writer.string(std::string_view(a->value.data, a->value.size));
+            if (const auto c = cstNodeMap[a])
+            {
+                auto x = c->as<CstExprConstantString>();
+                writer.sourceString(std::string_view(a->value.data, a->value.size), x->quoteStyle, x->blockDepth);
+            }
+            else
+                writer.string(std::string_view(a->value.data, a->value.size));
         }
         else if (const auto& a = expr.as<AstExprLocal>())
         {

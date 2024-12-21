@@ -11,4 +11,9 @@ CstExprConstantNumber::CstExprConstantNumber(const Location& location, const Ast
 {
 }
 
+CstExprConstantString::CstExprConstantString(const Location& location, QuoteStyle quoteStyle, unsigned int blockDepth) : CstNode(CstClassIndex(), location), quoteStyle(quoteStyle), blockDepth(blockDepth)
+{
+    LUAU_ASSERT(blockDepth == 0 || quoteStyle == QuoteStyle::QuotedRaw);
+}
+
 }

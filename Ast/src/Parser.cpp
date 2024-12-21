@@ -3103,21 +3103,36 @@ AstExpr* Parser::parseString()
     Location location = lexer.current().location;
 
     AstExprConstantString::QuoteStyle style;
+    CstExprConstantString::QuoteStyle fullStyle;
+    unsigned int blockDepth = 0;
     switch (lexer.current().type)
     {
     case Lexeme::QuotedString:
+        style = AstExprConstantString::QuotedSimple;
+        fullStyle =
+            lexer.current().getQuoteStyle() == Lexeme::QuoteStyle::Double ? CstExprConstantString::QuotedDouble : CstExprConstantString::QuotedSingle;
+        break;
     case Lexeme::InterpStringSimple:
         style = AstExprConstantString::QuotedSimple;
+        fullStyle = CstExprConstantString::QuotedInterp;
         break;
     case Lexeme::RawString:
+    {
         style = AstExprConstantString::QuotedRaw;
+        fullStyle = CstExprConstantString::QuotedRaw;
+        blockDepth = lexer.current().getBlockDepth();
         break;
+    }
     default:
         LUAU_ASSERT(false && "Invalid string type");
     }
 
     if (std::optional<AstArray<char>> value = parseCharArray())
-        return allocator.alloc<AstExprConstantString>(location, *value, style);
+    {
+        AstExprConstantString* node = allocator.alloc<AstExprConstantString>(location, *value, style);
+        cstNodeMap[node] = allocator.alloc<CstExprConstantString>(location, fullStyle, blockDepth);
+        return node;
+    }
     else
         return reportExprError(location, {}, "String literal contains malformed escape sequence");
 }

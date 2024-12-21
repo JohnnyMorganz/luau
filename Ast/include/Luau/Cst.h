@@ -83,4 +83,23 @@ public:
     AstArray<char> value;
 };
 
+class CstExprConstantString : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstExprConstantNumber)
+
+    enum QuoteStyle
+    {
+        QuotedSingle,
+        QuotedDouble,
+        QuotedRaw,
+        QuotedInterp,
+    };
+
+    CstExprConstantString(const Location& location, QuoteStyle quoteStyle, unsigned int blockDepth);
+
+    QuoteStyle quoteStyle;
+    unsigned int blockDepth;
+};
+
 }

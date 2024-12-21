@@ -236,6 +236,36 @@ TEST_CASE("binary_numbers")
     CHECK_EQ(code, transpile(code).code);
 }
 
+TEST_CASE("single_quoted_strings")
+{
+    const std::string code = R"( local a = 'hello world' )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("double_quoted_strings")
+{
+    const std::string code = R"( local a = "hello world" )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("simple_interp_string")
+{
+    const std::string code = R"( local a = `hello world` )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("raw_strings")
+{
+    const std::string code = R"( local a = [[ hello world ]] )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("raw_strings_with_blocks")
+{
+    const std::string code = R"( local a = [==[ hello world ]==] )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
 TEST_CASE("escaped_strings")
 {
     const std::string code = R"( local s='\\b\\t\\n\\\\' )";
