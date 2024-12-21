@@ -3130,7 +3130,7 @@ AstExpr* Parser::parseString()
     if (std::optional<AstArray<char>> value = parseCharArray())
     {
         AstExprConstantString* node = allocator.alloc<AstExprConstantString>(location, *value, style);
-        cstNodeMap[node] = allocator.alloc<CstExprConstantString>(location, fullStyle, blockDepth);
+        cstNodeMap[node] = allocator.alloc<CstExprConstantString>(fullStyle, blockDepth);
         return node;
     }
     else
@@ -3245,7 +3245,7 @@ AstExpr* Parser::parseNumber()
         return reportExprError(start, {}, "Malformed number");
 
     AstExprConstantNumber* node = allocator.alloc<AstExprConstantNumber>(start, value, result);
-    cstNodeMap[node] = allocator.alloc<CstExprConstantNumber>(start, data);
+    cstNodeMap[node] = allocator.alloc<CstExprConstantNumber>(data);
     return node;
 }
 

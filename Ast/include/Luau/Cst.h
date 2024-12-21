@@ -28,9 +28,8 @@ return CstRtti<Class>::value; \
 class CstNode
 {
 public:
-    explicit CstNode(int classIndex, const Location& location)
+    explicit CstNode(int classIndex)
         : classIndex(classIndex)
-        , location(location)
     {
     }
 
@@ -70,7 +69,6 @@ public:
     }
 
     const int classIndex;
-    Location location;
 };
 
 class CstExprConstantNumber : public CstNode
@@ -78,7 +76,7 @@ class CstExprConstantNumber : public CstNode
 public:
     LUAU_CST_RTTI(CstExprConstantNumber)
 
-    CstExprConstantNumber(const Location& location, const AstArray<char>& value);
+    CstExprConstantNumber(const AstArray<char>& value);
 
     AstArray<char> value;
 };
@@ -96,7 +94,7 @@ public:
         QuotedInterp,
     };
 
-    CstExprConstantString(const Location& location, QuoteStyle quoteStyle, unsigned int blockDepth);
+    CstExprConstantString(QuoteStyle quoteStyle, unsigned int blockDepth);
 
     QuoteStyle quoteStyle;
     unsigned int blockDepth;
