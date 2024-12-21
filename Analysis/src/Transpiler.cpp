@@ -1093,6 +1093,8 @@ struct Printer
     void visualizeElseIf(AstStatIf& elseif)
     {
         visualize(*elseif.condition);
+        if (elseif.thenLocation)
+            advance(elseif.thenLocation->begin);
         writer.keyword("then");
         visualizeBlock(*elseif.thenbody);
 
@@ -1102,11 +1104,15 @@ struct Printer
         }
         else if (auto elseifelseif = elseif.elsebody->as<AstStatIf>())
         {
+            if (elseif.elseLocation)
+                advance(elseif.elseLocation->begin);
             writer.keyword("elseif");
             visualizeElseIf(*elseifelseif);
         }
         else
         {
+            if (elseif.elseLocation)
+                advance(elseif.elseLocation->begin);
             writer.keyword("else");
 
             visualizeBlock(*elseif.elsebody);

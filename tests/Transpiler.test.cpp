@@ -42,6 +42,36 @@ TEST_CASE("string_literals_containing_utf8")
     CHECK_EQ(code, transpile(code).code);
 }
 
+TEST_CASE("if_stmt_spaces_around_tokens")
+{
+    const std::string one = R"( if     This then Once() end)";
+    CHECK_EQ(one, transpile(one).code);
+
+    const std::string two = R"( if This     then Once() end)";
+    CHECK_EQ(two, transpile(two).code);
+
+    const std::string three = R"( if This then     Once() end)";
+    CHECK_EQ(three, transpile(three).code);
+
+    const std::string four = R"( if This then Once()     end)";
+    CHECK_EQ(four, transpile(four).code);
+
+    const std::string five = R"( if This then Once()   else Other() end)";
+    CHECK_EQ(five, transpile(five).code);
+
+    const std::string six = R"( if This then Once() else    Other() end)";
+    CHECK_EQ(six, transpile(six).code);
+
+    const std::string seven = R"( if This then Once()    elseif true then Other() end)";
+    CHECK_EQ(seven, transpile(seven).code);
+
+    const std::string eight = R"( if This then Once() elseif     true then Other() end)";
+    CHECK_EQ(eight, transpile(eight).code);
+
+    const std::string nine = R"( if This then Once() elseif true    then Other() end)";
+    CHECK_EQ(nine, transpile(nine).code);
+}
+
 TEST_CASE("elseif_chains_indent_sensibly")
 {
     const std::string code = R"(
