@@ -97,10 +97,46 @@ TEST_CASE("for_loop")
     CHECK_EQ(code, transpile(code).code);
 }
 
+TEST_CASE("for_loop_spaces_around_tokens")
+{
+    const std::string one = R"( for index = 1, 10 do call(index) end )";
+    CHECK_EQ(one, transpile(one).code);
+
+    const std::string two = R"( for index = 1  , 10 do call(index) end )";
+    CHECK_EQ(two, transpile(two).code);
+
+    const std::string three = R"( for index = 1, 10  ,  3 do call(index) end )";
+    CHECK_EQ(three, transpile(three).code);
+
+    const std::string four = R"( for index = 1, 10    do call(index) end )";
+    CHECK_EQ(four, transpile(four).code);
+
+    const std::string five = R"( for index = 1, 10 do call(index)    end )";
+    CHECK_EQ(five, transpile(five).code);
+}
+
 TEST_CASE("for_in_loop")
 {
     const std::string code = R"( for k, v in ipairs(x)do end )";
     CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("for_in_loop_spaces_around_tokens")
+{
+    const std::string one = R"( for k, v in ipairs(x)   do end )";
+    CHECK_EQ(one, transpile(one).code);
+
+    const std::string two = R"( for k, v    in    ipairs(x) do end )";
+    CHECK_EQ(two, transpile(two).code);
+
+    const std::string three = R"( for k  ,  v in ipairs(x) do end )";
+    CHECK_EQ(three, transpile(three).code);
+
+    const std::string four = R"( for k, v in next  , t  do end )";
+    CHECK_EQ(four, transpile(four).code);
+
+    const std::string five = R"( for k, v in ipairs(x) do   end )";
+    CHECK_EQ(five, transpile(five).code);
 }
 
 TEST_CASE("while_loop")

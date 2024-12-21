@@ -34,4 +34,18 @@ CstExprTable::CstExprTable(const AstArray<Item>& items)
     , items(items)
 {
 }
+
+CstStatFor::CstStatFor(Position equalsPosition, Position endCommaPosition, std::optional<Position> stepCommaPosition)
+    : CstNode(CstClassIndex())
+    , equalsPosition(equalsPosition)
+    , endCommaPosition(endCommaPosition)
+    , stepCommaPosition(stepCommaPosition)
+{
+}
+CstStatForIn::CstStatForIn(AstArray<Position> varsCommaPositions, AstArray<Position> valuesCommaPositions)
+    : CstNode(CstClassIndex())
+    , varsCommaPositions(varsCommaPositions)
+    , valuesCommaPositions(valuesCommaPositions)
+{
+}
 }

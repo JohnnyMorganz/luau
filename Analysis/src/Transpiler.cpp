@@ -774,18 +774,29 @@ struct Printer
         }
         else if (const auto& a = program.as<AstStatFor>())
         {
+            CstStatFor* cstNode = nullptr;
+            if (const auto& c = cstNodeMap[a])
+                cstNode = c->as<CstStatFor>();
+
             writer.keyword("for");
 
             visualize(*a->var);
+            if (cstNode)
+                advance(cstNode->equalsPosition);
             writer.symbol("=");
             visualize(*a->from);
+            if (cstNode)
+                advance(cstNode->endCommaPosition);
             writer.symbol(",");
             visualize(*a->to);
             if (a->step)
             {
+                if (cstNode && cstNode->stepCommaPosition)
+                    advance(*cstNode->stepCommaPosition);
                 writer.symbol(",");
                 visualize(*a->step);
             }
+            advance(a->doLocation.begin);
             writer.keyword("do");
             visualizeBlock(*a->body);
 
@@ -793,32 +804,55 @@ struct Printer
         }
         else if (const auto& a = program.as<AstStatForIn>())
         {
+            CstStatForIn* cstNode = nullptr;
+            if (const auto& c = cstNodeMap[a])
+                cstNode = c->as<CstStatForIn>();
+
             writer.keyword("for");
 
             bool first = true;
+            auto varCommaPosition = cstNode ? cstNode->varsCommaPositions.begin() : nullptr;
             for (const auto& var : a->vars)
             {
                 if (first)
                     first = false;
                 else
+                {
+                    if (varCommaPosition)
+                    {
+                        advance(*varCommaPosition);
+                        varCommaPosition++;
+                    }
                     writer.symbol(",");
+                }
 
                 visualize(*var);
             }
 
+            advance(a->inLocation.begin);
             writer.keyword("in");
 
             first = true;
+            auto valCommaPosition = cstNode ? cstNode->valuesCommaPositions.begin() : nullptr;
+
             for (const auto& val : a->values)
             {
                 if (first)
                     first = false;
                 else
+                {
+                    if (valCommaPosition)
+                    {
+                        advance(*valCommaPosition);
+                        valCommaPosition++;
+                    }
                     writer.symbol(",");
+                }
 
                 visualize(*val);
             }
 
+            advance(a->doLocation.begin);
             writer.keyword("do");
 
             visualizeBlock(*a->body);

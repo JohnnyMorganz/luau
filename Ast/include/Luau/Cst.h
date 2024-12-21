@@ -138,4 +138,27 @@ public:
     AstArray<Item> items;
 };
 
+class CstStatFor : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstStatFor)
+
+    CstStatFor(Position equalsPosition, Position endCommaPosition, std::optional<Position> stepCommaPosition);
+
+    Position equalsPosition;
+    Position endCommaPosition;
+    std::optional<Position> stepCommaPosition;
+};
+
+class CstStatForIn : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstStatForIn)
+
+    CstStatForIn(AstArray<Position> varsCommaPositions, AstArray<Position> valuesCommaPositions);
+
+    AstArray<Position> varsCommaPositions;
+    AstArray<Position> valuesCommaPositions;
+};
+
 }

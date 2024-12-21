@@ -555,18 +555,22 @@ AstStat* Parser::parseFor()
 
     if (lexer.current().type == '=')
     {
+        Position equalsPosition = lexer.current().location.begin;
         nextLexeme();
 
         AstExpr* from = parseExpr();
 
+        Position endCommaPosition = lexer.current().location.begin;
         expectAndConsume(',', "index range");
 
         AstExpr* to = parseExpr();
 
+        std::optional<Position> stepCommaPosition = std::nullopt;
         AstExpr* step = nullptr;
 
         if (lexer.current().type == ',')
         {
+            stepCommaPosition = lexer.current().location.begin;
             nextLexeme();
 
             step = parseExpr();
@@ -592,25 +596,31 @@ AstStat* Parser::parseFor()
         bool hasEnd = expectMatchEndAndConsume(Lexeme::ReservedEnd, matchDo);
         body->hasEnd = hasEnd;
 
-        return allocator.alloc<AstStatFor>(Location(start, end), var, from, to, step, body, hasDo, matchDo.location);
+        AstStatFor* node = allocator.alloc<AstStatFor>(Location(start, end), var, from, to, step, body, hasDo, matchDo.location);
+        cstNodeMap[node] = allocator.alloc<CstStatFor>(equalsPosition, endCommaPosition, stepCommaPosition);
+        return node;
     }
     else
     {
         TempVector<Binding> names(scratchBinding);
+        TempVector<Position> varsCommaPosition(scratchPosition);
         names.push_back(varname);
 
         if (lexer.current().type == ',')
         {
+            varsCommaPosition.push_back(lexer.current().location.begin);
             nextLexeme();
 
-            parseBindingList(names);
+            parseBindingList(names, false, &varsCommaPosition);
         }
 
         Location inLocation = lexer.current().location;
         bool hasIn = expectAndConsume(Lexeme::ReservedIn, "for loop");
 
         TempVector<AstExpr*> values(scratchExpr);
-        parseExprList(values);
+        // TODO: is it safe to use the same scratchPosition again?
+        TempVector<Position> valuesCommaPositions(scratchPosition);
+        parseExprList(values, &valuesCommaPositions);
 
         Lexeme matchDo = lexer.current();
         bool hasDo = expectAndConsume(Lexeme::ReservedDo, "for loop");
@@ -635,7 +645,10 @@ AstStat* Parser::parseFor()
         bool hasEnd = expectMatchEndAndConsume(Lexeme::ReservedEnd, matchDo);
         body->hasEnd = hasEnd;
 
-        return allocator.alloc<AstStatForIn>(Location(start, end), copy(vars), copy(values), body, hasIn, inLocation, hasDo, matchDo.location);
+        AstStatForIn* node =
+            allocator.alloc<AstStatForIn>(Location(start, end), copy(vars), copy(values), body, hasIn, inLocation, hasDo, matchDo.location);
+        cstNodeMap[node] = allocator.alloc<CstStatForIn>(copy(varsCommaPosition), copy(valuesCommaPositions));
+        return node;
     }
 }
 
@@ -1402,7 +1415,7 @@ Parser::Binding Parser::parseBinding()
 }
 
 // bindinglist ::= (binding | `...') [`,' bindinglist]
-std::tuple<bool, Location, AstTypePack*> Parser::parseBindingList(TempVector<Binding>& result, bool allowDot3)
+std::tuple<bool, Location, AstTypePack*> Parser::parseBindingList(TempVector<Binding>& result, bool allowDot3, TempVector<Position>* commaPositions)
 {
     while (true)
     {
@@ -1425,6 +1438,8 @@ std::tuple<bool, Location, AstTypePack*> Parser::parseBindingList(TempVector<Bin
 
         if (lexer.current().type != ',')
             break;
+        if (commaPositions)
+            commaPositions->push_back(lexer.current().location.begin);
         nextLexeme();
     }
 

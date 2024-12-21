@@ -181,7 +181,11 @@ private:
 
     // bindinglist ::= (binding | `...') {`,' bindinglist}
     // Returns the location of the vararg ..., or std::nullopt if the function is not vararg.
-    std::tuple<bool, Location, AstTypePack*> parseBindingList(TempVector<Binding>& result, bool allowDot3 = false);
+    std::tuple<bool, Location, AstTypePack*> parseBindingList(
+        TempVector<Binding>& result,
+        bool allowDot3 = false,
+        TempVector<Position>* commaPositions = nullptr
+    );
 
     AstType* parseOptionalType();
 
