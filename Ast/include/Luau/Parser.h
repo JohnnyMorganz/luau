@@ -260,6 +260,8 @@ private:
     // args ::=  `(' [explist] `)' | tableconstructor | String
     AstExpr* parseFunctionArgs(AstExpr* func, bool self);
 
+    std::optional<CstExprTable::Separator> tableSeparator();
+
     // tableconstructor ::= `{' [fieldlist] `}'
     // fieldlist ::= field {fieldsep field} [fieldsep]
     // field ::= `[' exp `]' `=' exp | Name `=' exp | exp
@@ -447,11 +449,11 @@ private:
     std::vector<AstTypeOrPack> scratchTypeOrPack;
     std::vector<AstDeclaredClassProp> scratchDeclaredClassProps;
     std::vector<AstExprTable::Item> scratchItem;
+    std::vector<CstExprTable::Item> scratchCstItem;
     std::vector<AstArgumentName> scratchArgName;
     std::vector<AstGenericType> scratchGenericTypes;
     std::vector<AstGenericTypePack> scratchGenericTypePacks;
     std::vector<std::optional<AstArgumentName>> scratchOptArgName;
-    std::vector<CstExprTable::Separator> scratchSeparator;
     std::string scratchData;
 
     CstNodeMap cstNodeMap;

@@ -122,9 +122,19 @@ public:
         Semicolon,
     };
 
-    CstExprTable(const AstArray<Separator>& separators);
+    struct Item
+    {
+        // TODO: should we store positions rather than locations? we don't care about End, it can be inferred
+        std::optional<Location> indexerOpenLocation;  // '[', only if Kind == General
+        std::optional<Location> indexerCloseLocation; // ']', only if Kind == General
+        std::optional<Location> equalsLocation;       // only if Kind != List
+        std::optional<Separator> separator;           // may be missing for last Item
+        std::optional<Location> separatorLocation;
+    };
 
-    AstArray<Separator> separators;
+    CstExprTable(const AstArray<Item>& items);
+
+    AstArray<Item> items;
 };
 
 }

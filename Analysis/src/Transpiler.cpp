@@ -467,19 +467,15 @@ struct Printer
         {
             writer.symbol("{");
 
-            const CstExprTable::Separator* separators = nullptr;
-            const CstExprTable::Separator* separatorsEnd = nullptr;
+            const CstExprTable::Item* cstItem = nullptr;
             if (const auto& c = cstNodeMap[a])
-            {
-                separators = c->as<CstExprTable>()->separators.begin();
-                separatorsEnd = c->as<CstExprTable>()->separators.end();
-            }
+                cstItem = c->as<CstExprTable>()->items.begin();
 
             bool first = true;
 
             for (const auto& item : a->items)
             {
-                if (!separators)
+                if (!cstItem)
                 {
                     if (first)
                         first = false;
@@ -497,17 +493,27 @@ struct Printer
                     const auto& value = item.key->as<AstExprConstantString>()->value;
                     advance(item.key->location.begin);
                     writer.identifier(std::string_view(value.data, value.size));
-                    writer.maybeSpace(item.value->location.begin, 1);
+                    if (cstItem)
+                        advance(cstItem->equalsLocation->begin);
+                    else
+                        writer.maybeSpace(item.value->location.begin, 1);
                     writer.symbol("=");
                 }
                 break;
 
                 case AstExprTable::Item::General:
                 {
+                    if (cstItem)
+                        advance(cstItem->indexerOpenLocation->begin);
                     writer.symbol("[");
                     visualize(*item.key);
+                    if (cstItem)
+                        advance(cstItem->indexerCloseLocation->begin);
                     writer.symbol("]");
-                    writer.maybeSpace(item.value->location.begin, 1);
+                    if (cstItem)
+                        advance(cstItem->equalsLocation->begin);
+                    else
+                        writer.maybeSpace(item.value->location.begin, 1);
                     writer.symbol("=");
                 }
                 break;
@@ -519,13 +525,14 @@ struct Printer
                 advance(item.value->location.begin);
                 visualize(*item.value);
 
-                if (separators && separators != separatorsEnd)
+                if (cstItem)
                 {
-                    if (*separators == CstExprTable::Comma)
+                    advance(cstItem->separatorLocation->begin);
+                    if (cstItem->separator == CstExprTable::Comma)
                         writer.symbol(",");
-                    else
+                    else if (cstItem->separator == CstExprTable::Semicolon)
                         writer.symbol(";");
-                    separators++;
+                    cstItem++;
                 }
             }
 

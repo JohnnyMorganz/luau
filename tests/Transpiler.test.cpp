@@ -202,6 +202,36 @@ TEST_CASE("table_literal_with_trailing_separators")
     CHECK_EQ(code, transpile(code).code);
 }
 
+TEST_CASE("table_literal_with_spaces_around_separator")
+{
+    const std::string code = R"(
+        local t = { x = 1  , y = 2 }
+    )";
+
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("table_literal_with_spaces_around_equals")
+{
+    const std::string code = R"(
+        local t = { x    =   1  }
+    )";
+
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("table_literal_multiline_with_indexers")
+{
+    const std::string code = R"(
+        local t = {
+            ["my first value"] = "x";
+            ["my second value"] = "y";
+        }
+    )";
+
+    CHECK_EQ(code, transpile(code).code);
+}
+
 TEST_CASE("method_calls")
 {
     const std::string code = R"( foo.bar.baz:quux() )";

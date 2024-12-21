@@ -2713,6 +2713,16 @@ LUAU_NOINLINE void Parser::reportAmbiguousCallError()
     );
 }
 
+std::optional<CstExprTable::Separator> Parser::tableSeparator()
+{
+    if (lexer.current().type == ',')
+        return CstExprTable::Comma;
+    else if (lexer.current().type == ';')
+        return CstExprTable::Semicolon;
+    else
+        return std::nullopt;
+}
+
 // tableconstructor ::= `{' [fieldlist] `}'
 // fieldlist ::= field {fieldsep field} [fieldsep]
 // field ::= `[' exp `]' `=' exp | Name `=' exp | exp
@@ -2720,7 +2730,7 @@ LUAU_NOINLINE void Parser::reportAmbiguousCallError()
 AstExpr* Parser::parseTableConstructor()
 {
     TempVector<AstExprTable::Item> items(scratchItem);
-    TempVector<CstExprTable::Separator> separators(scratchSeparator);
+    TempVector<CstExprTable::Item> cstItems(scratchCstItem);
 
     Location start = lexer.current().location;
 
@@ -2734,23 +2744,28 @@ AstExpr* Parser::parseTableConstructor()
 
         if (lexer.current().type == '[')
         {
+            Location indexerOpenLocation = lexer.current().location;
             MatchLexeme matchLocationBracket = lexer.current();
             nextLexeme();
 
             AstExpr* key = parseExpr();
 
+            Location indexerCloseLocation = lexer.current().location;
             expectMatchAndConsume(']', matchLocationBracket);
 
+            Location equalsLocation = lexer.current().location;
             expectAndConsume('=', "table field");
 
             AstExpr* value = parseExpr();
 
             items.push_back({AstExprTable::Item::General, key, value});
+            cstItems.push_back({indexerOpenLocation, indexerCloseLocation, equalsLocation, tableSeparator(), lexer.current().location});
         }
         else if (lexer.current().type == Lexeme::Name && lexer.lookahead().type == '=')
         {
             Name name = parseName("table field");
 
+            Location equalsLocation = lexer.current().location;
             expectAndConsume('=', "table field");
 
             AstArray<char> nameString;
@@ -2764,20 +2779,18 @@ AstExpr* Parser::parseTableConstructor()
                 func->debugname = name.name;
 
             items.push_back({AstExprTable::Item::Record, key, value});
+            cstItems.push_back({std::nullopt, std::nullopt, equalsLocation, tableSeparator(), lexer.current().location});
         }
         else
         {
             AstExpr* expr = parseExpr();
 
             items.push_back({AstExprTable::Item::List, nullptr, expr});
+            cstItems.push_back({std::nullopt, std::nullopt, std::nullopt, tableSeparator(), lexer.current().location});
         }
 
         if (lexer.current().type == ',' || lexer.current().type == ';')
         {
-            if (lexer.current().type == ',')
-                separators.push_back(CstExprTable::Comma);
-            else
-                separators.push_back(CstExprTable::Semicolon);
             nextLexeme();
         }
         else if ((lexer.current().type == '[' || lexer.current().type == Lexeme::Name) && lexer.current().location.begin.column == lastElementIndent)
@@ -2796,7 +2809,7 @@ AstExpr* Parser::parseTableConstructor()
         end = lexer.previousLocation();
 
     AstExprTable* node = allocator.alloc<AstExprTable>(Location(start, end), copy(items));
-    cstNodeMap[node] = allocator.alloc<CstExprTable>(copy(separators));
+    cstNodeMap[node] = allocator.alloc<CstExprTable>(copy(cstItems));
     return node;
 }
 
