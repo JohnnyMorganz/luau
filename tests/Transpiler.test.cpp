@@ -218,6 +218,24 @@ TEST_CASE("infinity")
     CHECK_EQ(expected, transpile(code).code);
 }
 
+TEST_CASE("numbers_with_separators")
+{
+    const std::string code = R"( local a = 123_456_789 )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("hexadecimal_numbers")
+{
+    const std::string code = R"( local a = 0xFFFF )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("binary_numbers")
+{
+    const std::string code = R"( local a = 0b0101 )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
 TEST_CASE("escaped_strings")
 {
     const std::string code = R"( local s='\\b\\t\\n\\\\' )";

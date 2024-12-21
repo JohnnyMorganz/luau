@@ -8,6 +8,7 @@
 #include "Luau/StringUtils.h"
 #include "Luau/DenseHash.h"
 #include "Luau/Common.h"
+#include "Luau/Cst.h"
 
 #include <initializer_list>
 #include <optional>
@@ -451,6 +452,8 @@ private:
     std::vector<AstGenericTypePack> scratchGenericTypePacks;
     std::vector<std::optional<AstArgumentName>> scratchOptArgName;
     std::string scratchData;
+
+    CstNodeMap cstNodeMap;
 };
 
 } // namespace Luau

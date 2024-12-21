@@ -186,13 +186,15 @@ private:
 
 struct Printer
 {
-    explicit Printer(Writer& writer)
-        : writer(writer)
+    explicit Printer(Writer& writer, const CstNodeMap& cstNodeMap)
+        : writer(writer),
+        cstNodeMap(cstNodeMap)
     {
     }
 
     bool writeTypes = false;
     Writer& writer;
+    CstNodeMap cstNodeMap;
 
     void visualize(const AstLocal& local)
     {
@@ -314,24 +316,31 @@ struct Printer
         }
         else if (const auto& a = expr.as<AstExprConstantNumber>())
         {
-            if (isinf(a->value))
-            {
-                if (a->value > 0)
-                    writer.literal("1e500");
-                else
-                    writer.literal("-1e500");
+            if (const auto c = cstNodeMap[a]){
+                auto x = c->as<CstExprConstantNumber>();
+                writer.literal(std::string_view(x->value.data, x->value.size));
             }
-            else if (isnan(a->value))
-                writer.literal("0/0");
             else
             {
-                if (isIntegerish(a->value))
-                    writer.literal(std::to_string(int(a->value)));
+                if (isinf(a->value))
+                {
+                    if (a->value > 0)
+                        writer.literal("1e500");
+                    else
+                        writer.literal("-1e500");
+                }
+                else if (isnan(a->value))
+                    writer.literal("0/0");
                 else
                 {
-                    char buffer[100];
-                    size_t len = snprintf(buffer, sizeof(buffer), "%.17g", a->value);
-                    writer.literal(std::string_view{buffer, len});
+                    if (isIntegerish(a->value))
+                        writer.literal(std::to_string(int(a->value)));
+                    else
+                    {
+                        char buffer[100];
+                        size_t len = snprintf(buffer, sizeof(buffer), "%.17g", a->value);
+                        writer.literal(std::string_view{buffer, len});
+                    }
                 }
             }
         }
@@ -1188,7 +1197,7 @@ std::string toString(AstNode* node)
     StringWriter writer;
     writer.pos = node->location.begin;
 
-    Printer printer(writer);
+    Printer printer(writer, CstNodeMap{nullptr});
     printer.writeTypes = true;
 
     if (auto statNode = node->asStat())
@@ -1206,17 +1215,18 @@ void dump(AstNode* node)
     printf("%s\n", toString(node).c_str());
 }
 
-std::string transpile(AstStatBlock& block)
+std::string transpile(AstStatBlock& block, const CstNodeMap& cstNodeMap)
 {
     StringWriter writer;
-    Printer(writer).visualizeBlock(block);
+    Printer(writer, cstNodeMap).visualizeBlock(block);
     return writer.str();
 }
 
 std::string transpileWithTypes(AstStatBlock& block)
 {
     StringWriter writer;
-    Printer printer(writer);
+    // TODO
+    Printer printer(writer, CstNodeMap{nullptr});
     printer.writeTypes = true;
     printer.visualizeBlock(block);
     return writer.str();
@@ -1243,7 +1253,7 @@ TranspileResult transpile(std::string_view source, ParseOptions options, bool wi
     if (withTypes)
         return TranspileResult{transpileWithTypes(*parseResult.root)};
 
-    return TranspileResult{transpile(*parseResult.root)};
+    return TranspileResult{transpile(*parseResult.root, parseResult.cstNodeMap)};
 }
 
 } // namespace Luau

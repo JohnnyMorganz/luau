@@ -1120,7 +1120,7 @@ std::optional<std::string> TypeFunctionRuntime::registerFunction(AstStatTypeFunc
     AstStat* stmtArray[] = {&stmtReturn};
     AstArray<AstStat*> stmts{stmtArray, 1};
     AstStatBlock exec{Location{}, stmts};
-    ParseResult parseResult{&exec, 1};
+    ParseResult parseResult{&exec, 1, {}, {}, {}, CstNodeMap{nullptr}};
 
     BytecodeBuilder builder;
     try

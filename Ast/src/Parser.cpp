@@ -165,14 +165,14 @@ ParseResult Parser::parse(const char* buffer, size_t bufferSize, AstNameTable& n
         AstStatBlock* root = p.parseChunk();
         size_t lines = p.lexer.current().location.end.line + (bufferSize > 0 && buffer[bufferSize - 1] != '\n');
 
-        return ParseResult{root, lines, std::move(p.hotcomments), std::move(p.parseErrors), std::move(p.commentLocations)};
+        return ParseResult{root, lines, std::move(p.hotcomments), std::move(p.parseErrors), std::move(p.commentLocations), std::move(p.cstNodeMap)};
     }
     catch (ParseError& err)
     {
         // when catching a fatal error, append it to the list of non-fatal errors and return
         p.parseErrors.push_back(err);
 
-        return ParseResult{nullptr, 0, {}, p.parseErrors};
+        return ParseResult{nullptr, 0, {}, p.parseErrors, {}, std::move(p.cstNodeMap)};
     }
 }
 
@@ -183,6 +183,7 @@ Parser::Parser(const char* buffer, size_t bufferSize, AstNameTable& names, Alloc
     , recursionCounter(0)
     , endMismatchSuspect(Lexeme(Location(), Lexeme::Eof))
     , localMap(AstName())
+    , cstNodeMap(nullptr)
 {
     Function top;
     top.vararg = true;
@@ -3213,6 +3214,7 @@ AstExpr* Parser::parseNumber()
     Location start = lexer.current().location;
 
     scratchData.assign(lexer.current().data, lexer.current().getLength());
+    AstArray<char> data = copy(scratchData);
 
     // Remove all internal _ - they don't hold any meaning and this allows parsing code to just pass the string pointer to strtod et al
     if (scratchData.find('_') != std::string::npos)
@@ -3227,7 +3229,9 @@ AstExpr* Parser::parseNumber()
     if (result == ConstantNumberParseResult::Malformed)
         return reportExprError(start, {}, "Malformed number");
 
-    return allocator.alloc<AstExprConstantNumber>(start, value, result);
+    AstExprConstantNumber* node = allocator.alloc<AstExprConstantNumber>(start, value, result);
+    cstNodeMap[node] = allocator.alloc<CstExprConstantNumber>(start, data);
+    return node;
 }
 
 AstLocal* Parser::pushLocal(const Binding& binding)
