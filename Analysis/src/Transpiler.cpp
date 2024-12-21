@@ -206,9 +206,10 @@ struct StringWriter : Writer
 class CommaSeparatorInserter
 {
 public:
-    CommaSeparatorInserter(Writer& w)
+    CommaSeparatorInserter(Writer& w, const Position* commaPosition = nullptr)
         : first(true)
         , writer(w)
+        , commaPosition(commaPosition)
     {
     }
     void operator()()
@@ -216,12 +217,20 @@ public:
         if (first)
             first = !first;
         else
+        {
+            if (commaPosition)
+            {
+                writer.advance(*commaPosition);
+                commaPosition++;
+            }
             writer.symbol(",");
+        }
     }
 
 private:
     bool first;
     Writer& writer;
+    const Position* commaPosition;
 };
 
 struct Printer
@@ -427,22 +436,10 @@ struct Printer
                 writer.symbol("(");
             }
 
-            bool first = true;
-            auto commaPosition = cstNode ? cstNode->commaPositions.begin() : nullptr;
+            CommaSeparatorInserter comma(writer, cstNode ? cstNode->commaPositions.begin() : nullptr);
             for (const auto& arg : a->args)
             {
-                if (first)
-                    first = false;
-                else
-                {
-                    if (commaPosition)
-                    {
-                        advance(*commaPosition);
-                        commaPosition++;
-                    }
-                    writer.symbol(",");
-                }
-
+                comma();
                 visualize(*arg);
             }
 
@@ -810,45 +807,21 @@ struct Printer
 
             writer.keyword("for");
 
-            bool first = true;
-            auto varCommaPosition = cstNode ? cstNode->varsCommaPositions.begin() : nullptr;
+            CommaSeparatorInserter varComma(writer, cstNode ? cstNode->varsCommaPositions.begin() : nullptr);
             for (const auto& var : a->vars)
             {
-                if (first)
-                    first = false;
-                else
-                {
-                    if (varCommaPosition)
-                    {
-                        advance(*varCommaPosition);
-                        varCommaPosition++;
-                    }
-                    writer.symbol(",");
-                }
-
+                varComma();
                 visualize(*var);
             }
 
             advance(a->inLocation.begin);
             writer.keyword("in");
 
-            first = true;
-            auto valCommaPosition = cstNode ? cstNode->valuesCommaPositions.begin() : nullptr;
+            CommaSeparatorInserter valComma(writer, cstNode ? cstNode->valuesCommaPositions.begin() : nullptr);
 
             for (const auto& val : a->values)
             {
-                if (first)
-                    first = false;
-                else
-                {
-                    if (valCommaPosition)
-                    {
-                        advance(*valCommaPosition);
-                        valCommaPosition++;
-                    }
-                    writer.symbol(",");
-                }
-
+                valComma();
                 visualize(*val);
             }
 
