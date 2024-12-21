@@ -174,7 +174,7 @@ private:
     );
 
     // explist ::= {exp `,'} exp
-    void parseExprList(TempVector<AstExpr*>& result);
+    void parseExprList(TempVector<AstExpr*>& result, TempVector<Position>* commaPositions = nullptr);
 
     // binding ::= Name [`:` Type]
     Binding parseBinding();
@@ -454,6 +454,7 @@ private:
     std::vector<AstGenericType> scratchGenericTypes;
     std::vector<AstGenericTypePack> scratchGenericTypePacks;
     std::vector<std::optional<AstArgumentName>> scratchOptArgName;
+    std::vector<Position> scratchPosition;
     std::string scratchData;
 
     CstNodeMap cstNodeMap;

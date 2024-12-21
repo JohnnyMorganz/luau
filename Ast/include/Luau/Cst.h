@@ -105,10 +105,11 @@ class CstExprCall : public CstNode
 public:
     LUAU_CST_RTTI(CstExprCall)
 
-    CstExprCall(bool hasLeadingParens, bool hasTrailingParens);
+    CstExprCall(std::optional<Position> openParens, std::optional<Position> closeParens, AstArray<Position> commaPositions);
 
-    bool hasLeadingParens;
-    bool hasTrailingParens;
+    std::optional<Position> openParens;
+    std::optional<Position> closeParens;
+    AstArray<Position> commaPositions;
 };
 
 class CstExprTable : public CstNode

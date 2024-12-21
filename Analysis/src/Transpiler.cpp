@@ -416,8 +416,11 @@ struct Printer
 
             if (cstNode)
             {
-                if (cstNode->hasLeadingParens)
+                if (cstNode->openParens)
+                {
+                    advance(*cstNode->openParens);
                     writer.symbol("(");
+                }
             }
             else
             {
@@ -425,20 +428,31 @@ struct Printer
             }
 
             bool first = true;
+            auto commaPosition = cstNode ? cstNode->commaPositions.begin() : nullptr;
             for (const auto& arg : a->args)
             {
                 if (first)
                     first = false;
                 else
+                {
+                    if (commaPosition)
+                    {
+                        advance(*commaPosition);
+                        commaPosition++;
+                    }
                     writer.symbol(",");
+                }
 
                 visualize(*arg);
             }
 
             if (cstNode)
             {
-                if (cstNode->hasTrailingParens)
+                if (cstNode->closeParens)
+                {
+                    advance(*cstNode->closeParens);
                     writer.symbol(")");
+                }
             }
             else
             {

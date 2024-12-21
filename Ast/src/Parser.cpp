@@ -1368,12 +1368,14 @@ std::pair<AstExprFunction*, AstLocal*> Parser::parseFunctionBody(
 }
 
 // explist ::= {exp `,'} exp
-void Parser::parseExprList(TempVector<AstExpr*>& result)
+void Parser::parseExprList(TempVector<AstExpr*>& result, TempVector<Position>* commaPositions)
 {
     result.push_back(parseExpr());
 
     while (lexer.current().type == ',')
     {
+        if (commaPositions)
+            commaPositions->push_back(lexer.current().location.begin);
         nextLexeme();
 
         if (lexer.current().type == ')')
@@ -2648,17 +2650,21 @@ AstExpr* Parser::parseFunctionArgs(AstExpr* func, bool self)
         nextLexeme();
 
         TempVector<AstExpr*> args(scratchExpr);
+        TempVector<Position> commaPositions(scratchPosition);
 
         if (lexer.current().type != ')')
-            parseExprList(args);
+            parseExprList(args, &commaPositions);
 
         Location end = lexer.current().location;
         Position argEnd = end.end;
 
+        Position trailingParensPosition = lexer.current().location.begin;
         bool hasTrailingParens = expectMatchAndConsume(')', matchParen);
 
         AstExprCall* node = allocator.alloc<AstExprCall>(Location(func->location, end), func, copy(args), self, Location(argStart, argEnd));
-        cstNodeMap[node] = allocator.alloc<CstExprCall>(true, hasTrailingParens);
+        cstNodeMap[node] = allocator.alloc<CstExprCall>(
+            matchParen.position, hasTrailingParens ? std::make_optional(trailingParensPosition) : std::nullopt, copy(commaPositions)
+        );
         return node;
     }
     else if (lexer.current().type == '{')
@@ -2669,7 +2675,7 @@ AstExpr* Parser::parseFunctionArgs(AstExpr* func, bool self)
 
         AstExprCall* node =
             allocator.alloc<AstExprCall>(Location(func->location, expr->location), func, copy(&expr, 1), self, Location(argStart, argEnd));
-        cstNodeMap[node] = allocator.alloc<CstExprCall>(false, false);
+        cstNodeMap[node] = allocator.alloc<CstExprCall>(std::nullopt, std::nullopt, AstArray<Position>{nullptr, 0});
         return node;
     }
     else if (lexer.current().type == Lexeme::RawString || lexer.current().type == Lexeme::QuotedString)
@@ -2678,7 +2684,7 @@ AstExpr* Parser::parseFunctionArgs(AstExpr* func, bool self)
         AstExpr* expr = parseString();
 
         AstExprCall* node = allocator.alloc<AstExprCall>(Location(func->location, expr->location), func, copy(&expr, 1), self, argLocation);
-        cstNodeMap[node] = allocator.alloc<CstExprCall>(false, false);
+        cstNodeMap[node] = allocator.alloc<CstExprCall>(std::nullopt, std::nullopt, AstArray<Position>{nullptr, 0});
         return node;
     }
     else

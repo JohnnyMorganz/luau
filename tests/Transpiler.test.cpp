@@ -362,6 +362,24 @@ TEST_CASE("function_call_parentheses_multiple_args_no_space")
     CHECK_EQ(code, transpile(code).code);
 }
 
+TEST_CASE("function_call_parentheses_multiple_args_space_before_commas")
+{
+    const std::string code = R"( call(arg1 ,arg3 ,arg3) )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("function_call_spaces_before_parentheses")
+{
+    const std::string code = R"( call () )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("function_call_spaces_within_parentheses")
+{
+    const std::string code = R"( call(  ) )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
 TEST_CASE("function_call_string_double_quotes")
 {
     const std::string code = R"( call "string" )";
