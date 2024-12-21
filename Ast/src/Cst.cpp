@@ -21,4 +21,10 @@ CstExprConstantString::CstExprConstantString(QuoteStyle quoteStyle, unsigned int
     LUAU_ASSERT(blockDepth == 0 || quoteStyle == QuoteStyle::QuotedRaw);
 }
 
+CstExprCall::CstExprCall(bool hasLeadingParens, bool hasTrailingParens)
+    : CstNode(CstClassIndex())
+    , hasLeadingParens(hasLeadingParens)
+    , hasTrailingParens(hasTrailingParens)
+{
+}
 }

@@ -290,6 +290,60 @@ TEST_CASE("binary_keywords")
     CHECK_EQ(code, transpile(code).code);
 }
 
+TEST_CASE("function_call_parentheses_no_args")
+{
+    const std::string code = R"( call() )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("function_call_parentheses_one_arg")
+{
+    const std::string code = R"( call(arg) )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("function_call_parentheses_multiple_args")
+{
+    const std::string code = R"( call(arg1, arg3, arg3) )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("function_call_parentheses_multiple_args_no_space")
+{
+    const std::string code = R"( call(arg1,arg3,arg3) )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("function_call_string_double_quotes")
+{
+    const std::string code = R"( call "string" )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("function_call_string_single_quotes")
+{
+    const std::string code = R"( call 'string' )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("function_call_string_no_space")
+{
+    const std::string code = R"( call'string' )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("function_call_table_literal")
+{
+    const std::string code = R"( call { x = 1 } )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("function_call_table_literal_no_space")
+{
+    const std::string code = R"( call{x=1} )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
 TEST_CASE("do_blocks")
 {
     const std::string code = R"(

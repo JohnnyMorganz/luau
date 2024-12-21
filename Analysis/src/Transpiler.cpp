@@ -409,7 +409,20 @@ struct Printer
         else if (const auto& a = expr.as<AstExprCall>())
         {
             visualize(*a->func);
-            writer.symbol("(");
+
+            const CstExprCall* cstNode = nullptr;
+            if (auto c = cstNodeMap[a])
+                cstNode = c->as<CstExprCall>();
+
+            if (cstNode)
+            {
+                if (cstNode->hasLeadingParens)
+                    writer.symbol("(");
+            }
+            else
+            {
+                writer.symbol("(");
+            }
 
             bool first = true;
             for (const auto& arg : a->args)
@@ -422,7 +435,15 @@ struct Printer
                 visualize(*arg);
             }
 
-            writer.symbol(")");
+            if (cstNode)
+            {
+                if (cstNode->hasTrailingParens)
+                    writer.symbol(")");
+            }
+            else
+            {
+                writer.symbol(")");
+            }
         }
         else if (const auto& a = expr.as<AstExprIndexName>())
         {

@@ -100,4 +100,15 @@ public:
     unsigned int blockDepth;
 };
 
+class CstExprCall : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstExprCall)
+
+    CstExprCall(bool hasLeadingParens, bool hasTrailingParens);
+
+    bool hasLeadingParens;
+    bool hasTrailingParens;
+};
+
 }

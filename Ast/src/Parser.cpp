@@ -2655,9 +2655,11 @@ AstExpr* Parser::parseFunctionArgs(AstExpr* func, bool self)
         Location end = lexer.current().location;
         Position argEnd = end.end;
 
-        expectMatchAndConsume(')', matchParen);
+        bool hasTrailingParens = expectMatchAndConsume(')', matchParen);
 
-        return allocator.alloc<AstExprCall>(Location(func->location, end), func, copy(args), self, Location(argStart, argEnd));
+        AstExprCall* node = allocator.alloc<AstExprCall>(Location(func->location, end), func, copy(args), self, Location(argStart, argEnd));
+        cstNodeMap[node] = allocator.alloc<CstExprCall>(true, hasTrailingParens);
+        return node;
     }
     else if (lexer.current().type == '{')
     {
@@ -2665,14 +2667,19 @@ AstExpr* Parser::parseFunctionArgs(AstExpr* func, bool self)
         AstExpr* expr = parseTableConstructor();
         Position argEnd = lexer.previousLocation().end;
 
-        return allocator.alloc<AstExprCall>(Location(func->location, expr->location), func, copy(&expr, 1), self, Location(argStart, argEnd));
+        AstExprCall* node =
+            allocator.alloc<AstExprCall>(Location(func->location, expr->location), func, copy(&expr, 1), self, Location(argStart, argEnd));
+        cstNodeMap[node] = allocator.alloc<CstExprCall>(false, false);
+        return node;
     }
     else if (lexer.current().type == Lexeme::RawString || lexer.current().type == Lexeme::QuotedString)
     {
         Location argLocation = lexer.current().location;
         AstExpr* expr = parseString();
 
-        return allocator.alloc<AstExprCall>(Location(func->location, expr->location), func, copy(&expr, 1), self, argLocation);
+        AstExprCall* node = allocator.alloc<AstExprCall>(Location(func->location, expr->location), func, copy(&expr, 1), self, argLocation);
+        cstNodeMap[node] = allocator.alloc<CstExprCall>(false, false);
+        return node;
     }
     else
     {
