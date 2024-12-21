@@ -704,6 +704,8 @@ struct Printer
         {
             writer.keyword("while");
             visualize(*a->condition);
+            // TODO: what if 'hasDo = false'?
+            advance(a->doLocation.begin);
             writer.keyword("do");
             visualizeBlock(*a->body);
             writeEnd(program.location);

@@ -145,6 +145,21 @@ TEST_CASE("while_loop")
     CHECK_EQ(code, transpile(code).code);
 }
 
+TEST_CASE("while_loop_spaces_around_tokens")
+{
+    const std::string one = R"( while     f(x) do print() end )";
+    CHECK_EQ(one, transpile(one).code);
+
+    const std::string two = R"( while f(x)    do print() end )";
+    CHECK_EQ(two, transpile(two).code);
+
+    const std::string three = R"( while f(x) do    print() end )";
+    CHECK_EQ(three, transpile(three).code);
+
+    const std::string four = R"( while f(x) do print()    end )";
+    CHECK_EQ(four, transpile(four).code);
+}
+
 TEST_CASE("repeat_until_loop")
 {
     const std::string code = R"( repeat print() until f(x) )";
