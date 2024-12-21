@@ -1289,14 +1289,19 @@ std::string transpile(AstStatBlock& block, const CstNodeMap& cstNodeMap)
     return writer.str();
 }
 
-std::string transpileWithTypes(AstStatBlock& block)
+std::string transpileWithTypes(AstStatBlock& block, const CstNodeMap& cstNodeMap)
 {
     StringWriter writer;
-    // TODO
-    Printer printer(writer, CstNodeMap{nullptr});
+    Printer printer(writer, cstNodeMap);
     printer.writeTypes = true;
     printer.visualizeBlock(block);
     return writer.str();
+}
+
+std::string transpileWithTypes(AstStatBlock& block)
+{
+    // TODO: remove this interface?
+    return transpileWithTypes(block, CstNodeMap{nullptr});
 }
 
 TranspileResult transpile(std::string_view source, ParseOptions options, bool withTypes)
@@ -1318,7 +1323,7 @@ TranspileResult transpile(std::string_view source, ParseOptions options, bool wi
         return TranspileResult{"", {}, "Internal error: Parser yielded empty parse tree"};
 
     if (withTypes)
-        return TranspileResult{transpileWithTypes(*parseResult.root)};
+        return TranspileResult{transpileWithTypes(*parseResult.root, parseResult.cstNodeMap)};
 
     return TranspileResult{transpile(*parseResult.root, parseResult.cstNodeMap)};
 }
