@@ -3175,10 +3175,13 @@ AstExpr* Parser::parseString()
         LUAU_ASSERT(false && "Invalid string type");
     }
 
+    scratchData.assign(lexer.current().data, lexer.current().getLength());
+    AstArray<char> sourceString = copy(scratchData);
+
     if (std::optional<AstArray<char>> value = parseCharArray())
     {
         AstExprConstantString* node = allocator.alloc<AstExprConstantString>(location, *value, style);
-        cstNodeMap[node] = allocator.alloc<CstExprConstantString>(fullStyle, blockDepth);
+        cstNodeMap[node] = allocator.alloc<CstExprConstantString>(sourceString, fullStyle, blockDepth);
         return node;
     }
     else

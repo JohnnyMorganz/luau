@@ -407,6 +407,30 @@ TEST_CASE("escaped_strings_2")
     CHECK_EQ(code, transpile(code).code);
 }
 
+TEST_CASE("escaped_strings_newline")
+{
+    const std::string code = R"(
+    print("foo \
+        bar")
+    )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("escaped_strings_raw")
+{
+    const std::string code = R"( local x = [=[\v<((do|load)file|require)\s*\(?['"]\zs[^'"]+\ze['"]]=] )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
+TEST_CASE("position_correctly_updated_when_writing_multiline_string")
+{
+    const std::string code = R"(
+    call([[
+        testing
+    ]]) )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
 TEST_CASE("need_a_space_between_number_literals_and_dots")
 {
     const std::string code = R"( return point and math.ceil(point* 100000* 100)/ 100000 .. '%'or '' )";

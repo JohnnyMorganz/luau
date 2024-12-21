@@ -397,8 +397,10 @@ struct Printer
         {
             if (const auto c = cstNodeMap[a])
             {
-                auto x = c->as<CstExprConstantString>();
-                writer.sourceString(std::string_view(a->value.data, a->value.size), x->quoteStyle, x->blockDepth);
+                auto cstNode = c->as<CstExprConstantString>();
+                writer.sourceString(
+                    std::string_view(cstNode->sourceString.data, cstNode->sourceString.size), cstNode->quoteStyle, cstNode->blockDepth
+                );
             }
             else
                 writer.string(std::string_view(a->value.data, a->value.size));

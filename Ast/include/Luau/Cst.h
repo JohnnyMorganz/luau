@@ -94,8 +94,9 @@ public:
         QuotedInterp,
     };
 
-    CstExprConstantString(QuoteStyle quoteStyle, unsigned int blockDepth);
+    CstExprConstantString(AstArray<char> sourceString, QuoteStyle quoteStyle, unsigned int blockDepth);
 
+    AstArray<char> sourceString;
     QuoteStyle quoteStyle;
     unsigned int blockDepth;
 };

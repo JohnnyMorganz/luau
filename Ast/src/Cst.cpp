@@ -13,8 +13,9 @@ CstExprConstantNumber::CstExprConstantNumber(const AstArray<char>& value)
 {
 }
 
-CstExprConstantString::CstExprConstantString(QuoteStyle quoteStyle, unsigned int blockDepth)
+CstExprConstantString::CstExprConstantString(AstArray<char> sourceString, QuoteStyle quoteStyle, unsigned int blockDepth)
     : CstNode(CstClassIndex())
+    , sourceString(sourceString)
     , quoteStyle(quoteStyle)
     , blockDepth(blockDepth)
 {
