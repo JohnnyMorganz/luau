@@ -195,4 +195,14 @@ public:
     AstArray<Position> valuesCommaPositions;
 };
 
+class CstStatCompoundAssign : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstStatCompoundAssign)
+
+    CstStatCompoundAssign(Position opPosition);
+
+    Position opPosition;
+};
+
 }

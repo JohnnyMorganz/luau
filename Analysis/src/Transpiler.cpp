@@ -862,40 +862,39 @@ struct Printer
         }
         else if (const auto& a = program.as<AstStatCompoundAssign>())
         {
+            CstStatCompoundAssign* cstNode = nullptr;
+            if (const auto& c = cstNodeMap[a])
+                cstNode = c->as<CstStatCompoundAssign>();
+
             visualize(*a->var);
+
+            if (cstNode)
+                advance(cstNode->opPosition);
 
             switch (a->op)
             {
             case AstExprBinary::Add:
-                writer.maybeSpace(a->value->location.begin, 2);
                 writer.symbol("+=");
                 break;
             case AstExprBinary::Sub:
-                writer.maybeSpace(a->value->location.begin, 2);
                 writer.symbol("-=");
                 break;
             case AstExprBinary::Mul:
-                writer.maybeSpace(a->value->location.begin, 2);
                 writer.symbol("*=");
                 break;
             case AstExprBinary::Div:
-                writer.maybeSpace(a->value->location.begin, 2);
                 writer.symbol("/=");
                 break;
             case AstExprBinary::FloorDiv:
-                writer.maybeSpace(a->value->location.begin, 2);
                 writer.symbol("//=");
                 break;
             case AstExprBinary::Mod:
-                writer.maybeSpace(a->value->location.begin, 2);
                 writer.symbol("%=");
                 break;
             case AstExprBinary::Pow:
-                writer.maybeSpace(a->value->location.begin, 2);
                 writer.symbol("^=");
                 break;
             case AstExprBinary::Concat:
-                writer.maybeSpace(a->value->location.begin, 3);
                 writer.symbol("..=");
                 break;
             default:

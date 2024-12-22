@@ -1276,11 +1276,14 @@ AstStat* Parser::parseCompoundAssignment(AstExpr* initial, AstExprBinary::Op op)
         initial = reportExprError(initial->location, copy({initial}), "Assigned expression must be a variable or a field");
     }
 
+    Position opPosition = lexer.current().location.begin;
     nextLexeme();
 
     AstExpr* value = parseExpr();
 
-    return allocator.alloc<AstStatCompoundAssign>(Location(initial->location, value->location), op, initial, value);
+    AstStatCompoundAssign* node = allocator.alloc<AstStatCompoundAssign>(Location(initial->location, value->location), op, initial, value);
+    cstNodeMap[node] = allocator.alloc<CstStatCompoundAssign>(opPosition);
+    return node;
 }
 
 std::pair<AstLocal*, AstArray<AstLocal*>> Parser::prepareFunctionArguments(const Location& start, bool hasself, const TempVector<Binding>& args)

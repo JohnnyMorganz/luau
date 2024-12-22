@@ -867,6 +867,15 @@ a ..= ' - result'
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
 
+TEST_CASE_FIXTURE(Fixture, "compound_assignment_spaces_around_tokens")
+{
+    std::string one = R"( a   += 1 )";
+    CHECK_EQ(one, transpile(one, {}, true).code);
+
+    std::string two = R"( a +=   1 )";
+    CHECK_EQ(two, transpile(two, {}, true).code);
+}
+
 TEST_CASE_FIXTURE(Fixture, "transpile_assign_multiple")
 {
     std::string code = "a, b, c = 1, 2, 3";
