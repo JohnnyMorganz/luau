@@ -710,7 +710,10 @@ AstStat* Parser::parseFunctionStat(const AstArray<AstAttr*>& attributes)
 
     bool hasself = false;
     AstName debugname;
-    AstExpr* expr = parseFunctionName(start, hasself, debugname);
+    // TODO: DEVIATION FROM ORIGINAL CODE - MOVE INTO SEPARATE PR AND FLAG APPROPRIATELY
+    // Before: start location was before the 'function' token
+    // After: start location is after 'function' token, and is the actual start of the name
+    AstExpr* expr = parseFunctionName(lexer.current().location, hasself, debugname);
 
     matchRecoveryStopOnToken[Lexeme::ReservedEnd]++;
 
