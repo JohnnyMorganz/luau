@@ -149,6 +149,17 @@ public:
     AstArray<Position> commaPositions;
 };
 
+class CstStatLocal : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstStatLocal)
+
+    CstStatLocal(AstArray<Position> varsCommaPositions, AstArray<Position> valuesCommaPositions);
+
+    AstArray<Position> varsCommaPositions;
+    AstArray<Position> valuesCommaPositions;
+};
+
 class CstStatFor : public CstNode
 {
 public:

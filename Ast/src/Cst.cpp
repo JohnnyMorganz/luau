@@ -42,6 +42,13 @@ CstStatReturn::CstStatReturn(AstArray<Position> commaPositions)
 {
 }
 
+CstStatLocal::CstStatLocal(AstArray<Position> varsCommaPositions, AstArray<Position> valuesCommaPositions)
+    : CstNode(CstClassIndex())
+    , varsCommaPositions(varsCommaPositions)
+    , valuesCommaPositions(valuesCommaPositions)
+{
+}
+
 CstStatFor::CstStatFor(Position equalsPosition, Position endCommaPosition, std::optional<Position> stepCommaPosition)
     : CstNode(CstClassIndex())
     , equalsPosition(equalsPosition)
@@ -56,3 +63,5 @@ CstStatForIn::CstStatForIn(AstArray<Position> varsCommaPositions, AstArray<Posit
 {
 }
 }
+
+} // namespace Luau

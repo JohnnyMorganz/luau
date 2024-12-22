@@ -873,13 +873,16 @@ AstStat* Parser::parseLocal(const AstArray<AstAttr*>& attributes)
         matchRecoveryStopOnToken['=']++;
 
         TempVector<Binding> names(scratchBinding);
-        parseBindingList(names);
+        TempVector<Position> varsCommaPositions(scratchPosition);
+        parseBindingList(names, false, &varsCommaPositions);
 
         matchRecoveryStopOnToken['=']--;
 
         TempVector<AstLocal*> vars(scratchLocal);
 
         TempVector<AstExpr*> values(scratchExpr);
+        // TODO: fine to reuse scratchPosition?
+        TempVector<Position> valuesCommaPositions(scratchPosition);
 
         std::optional<Location> equalsSignLocation;
 
@@ -889,7 +892,7 @@ AstStat* Parser::parseLocal(const AstArray<AstAttr*>& attributes)
 
             nextLexeme();
 
-            parseExprList(values);
+            parseExprList(values, &valuesCommaPositions);
         }
 
         for (size_t i = 0; i < names.size(); ++i)
@@ -897,7 +900,9 @@ AstStat* Parser::parseLocal(const AstArray<AstAttr*>& attributes)
 
         Location end = values.empty() ? lexer.previousLocation() : values.back()->location;
 
-        return allocator.alloc<AstStatLocal>(Location(start, end), copy(vars), copy(values), equalsSignLocation);
+        AstStatLocal* node = allocator.alloc<AstStatLocal>(Location(start, end), copy(vars), copy(values), equalsSignLocation);
+        cstNodeMap[node] = allocator.alloc<CstStatLocal>(copy(varsCommaPositions), copy(valuesCommaPositions));
+        return node;
     }
 }
 

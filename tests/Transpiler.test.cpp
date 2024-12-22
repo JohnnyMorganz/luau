@@ -205,6 +205,42 @@ TEST_CASE("lambda")
     CHECK_EQ(two, transpile(two).code);
 }
 
+TEST_CASE("local_assignment")
+{
+    const std::string one = R"( local x = 1 )";
+    CHECK_EQ(one, transpile(one).code);
+
+    const std::string two = R"( local x, y, z = 1, 2, 3 )";
+    CHECK_EQ(two, transpile(two).code);
+
+    const std::string three = R"( local x )";
+    CHECK_EQ(three, transpile(three).code);
+}
+
+TEST_CASE("local_assignment_spaces_around_tokens")
+{
+    const std::string one = R"( local    x = 1 )";
+    CHECK_EQ(one, transpile(one).code);
+
+    const std::string two = R"( local x    = 1 )";
+    CHECK_EQ(two, transpile(two).code);
+
+    const std::string three = R"( local x =    1 )";
+    CHECK_EQ(three, transpile(three).code);
+
+    const std::string four = R"( local x   , y = 1, 2 )";
+    CHECK_EQ(four, transpile(four).code);
+
+    const std::string five = R"( local x,    y = 1, 2 )";
+    CHECK_EQ(five, transpile(five).code);
+
+    const std::string six = R"( local x, y = 1   , 2 )";
+    CHECK_EQ(six, transpile(six).code);
+
+    const std::string seven = R"( local x, y = 1,    2 )";
+    CHECK_EQ(seven, transpile(seven).code);
+}
+
 TEST_CASE("local_function")
 {
     const std::string one = R"( local function p(o, m, g) return 77 end )";

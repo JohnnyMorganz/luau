@@ -746,31 +746,30 @@ struct Printer
         }
         else if (const auto& a = program.as<AstStatLocal>())
         {
+            CstStatLocal* cstNode = nullptr;
+            if (const auto& c = cstNodeMap[a])
+                cstNode = c->as<CstStatLocal>();
+
             writer.keyword("local");
 
-            bool first = true;
+            CommaSeparatorInserter varComma(writer, cstNode ? cstNode->varsCommaPositions.begin() : nullptr);
             for (const auto& local : a->vars)
             {
-                if (first)
-                    first = false;
-                else
-                    writer.write(",");
-
+                varComma();
                 visualize(*local);
             }
 
-            first = true;
+            if (a->equalsSignLocation)
+            {
+                advance(a->equalsSignLocation->begin);
+                writer.symbol("=");
+            }
+
+
+            CommaSeparatorInserter valueComma(writer, cstNode ? cstNode->valuesCommaPositions.begin() : nullptr);
             for (const auto& value : a->values)
             {
-                if (first)
-                {
-                    first = false;
-                    writer.maybeSpace(value->location.begin, 2);
-                    writer.symbol("=");
-                }
-                else
-                    writer.symbol(",");
-
+                valueComma();
                 visualize(*value);
             }
         }
