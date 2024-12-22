@@ -830,6 +830,15 @@ TEST_CASE_FIXTURE(Fixture, "transpile_type_assertion")
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
 
+TEST_CASE_FIXTURE(Fixture, "type_assertion_spaces_around_tokens")
+{
+    std::string code = "local a = 5   :: number";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = "local a = 5 ::   number";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
 TEST_CASE_FIXTURE(Fixture, "transpile_if_then_else")
 {
     std::string code = "local a = if 1 then 2 else 3";

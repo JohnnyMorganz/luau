@@ -661,7 +661,10 @@ struct Printer
 
             if (writeTypes)
             {
-                writer.maybeSpace(a->annotation->location.begin, 2);
+                if (const auto& c = cstNodeMap[a])
+                    advance(c->as<CstExprTypeAssertion>()->opPosition);
+                else
+                    writer.maybeSpace(a->annotation->location.begin, 2);
                 writer.symbol("::");
                 visualizeTypeAnnotation(*a->annotation);
             }

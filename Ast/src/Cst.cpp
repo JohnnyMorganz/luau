@@ -55,6 +55,12 @@ CstExprOp::CstExprOp(Position opPosition)
 {
 }
 
+CstExprTypeAssertion::CstExprTypeAssertion(Position opPosition)
+    : CstNode(CstClassIndex())
+    , opPosition(opPosition)
+{
+}
+
 CstStatDo::CstStatDo(Position endPosition)
     : CstNode(CstClassIndex())
     , endPosition(endPosition)

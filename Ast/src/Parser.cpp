@@ -2531,9 +2531,12 @@ AstExpr* Parser::parseAssertionExpr()
 
     if (lexer.current().type == Lexeme::DoubleColon)
     {
+        Position opPosition = lexer.current().location.begin;
         nextLexeme();
         AstType* annotation = parseType();
-        return allocator.alloc<AstExprTypeAssertion>(Location(start, annotation->location), expr, annotation);
+        AstExprTypeAssertion* node = allocator.alloc<AstExprTypeAssertion>(Location(start, annotation->location), expr, annotation);
+        cstNodeMap[node] = allocator.alloc<CstExprTypeAssertion>(opPosition);
+        return node;
     }
     else
         return expr;
