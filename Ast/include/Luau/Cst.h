@@ -139,6 +139,17 @@ public:
     AstArray<Item> items;
 };
 
+// TODO: Shared between unary and binary, should we split?
+class CstExprOp : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstExprOp)
+
+    CstExprOp(Position opPosition);
+
+    Position opPosition;
+};
+
 class CstStatReturn : public CstNode
 {
 public:
@@ -212,6 +223,29 @@ public:
 
     CstStatLocalFunction(Position functionKeywordPosition);
 
+    Position functionKeywordPosition;
+};
+
+class CstStatTypeAlias : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstStatTypeAlias)
+
+    CstStatTypeAlias(Position typeKeywordPosition, AstArray<Position> genericsCommaPositions, Position equalsPosition);
+
+    Position typeKeywordPosition;
+    AstArray<Position> genericsCommaPositions;
+    Position equalsPosition;
+};
+
+class CstStatTypeFunction : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstStatTypeFunction)
+
+    CstStatTypeFunction(Position typeKeywordPosition, Position functionKeywordPosition);
+
+    Position typeKeywordPosition;
     Position functionKeywordPosition;
 };
 

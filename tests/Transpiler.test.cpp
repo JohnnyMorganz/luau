@@ -846,6 +846,31 @@ local d = #e
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
 
+TEST_CASE_FIXTURE(Fixture, "unary_spaces_around_tokens")
+{
+    std::string code = R"(
+local _ =   -1
+local _ = -  1
+local _ =   not true
+local _ = not   true
+local _ =   #e
+local _ = #  e
+    )";
+
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
+TEST_CASE_FIXTURE(Fixture, "binary_spaces_around_tokens")
+{
+    std::string code = R"(
+local _ =    1+1
+local _ = 1   +1
+local _ = 1+   1
+    )";
+
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
 TEST_CASE_FIXTURE(Fixture, "transpile_break_continue")
 {
     std::string code = R"(

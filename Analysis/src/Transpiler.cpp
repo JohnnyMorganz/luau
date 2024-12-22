@@ -560,6 +560,9 @@ struct Printer
         }
         else if (const auto& a = expr.as<AstExprUnary>())
         {
+            if (const auto& c = cstNodeMap[a])
+                advance(c->as<CstExprOp>()->opPosition);
+
             switch (a->op)
             {
             case AstExprUnary::Not:
@@ -578,36 +581,40 @@ struct Printer
         {
             visualize(*a->left);
 
-            switch (a->op)
+            if (const auto& c = cstNodeMap[a])
+                advance(c->as<CstExprOp>()->opPosition);
+            else
             {
-            case AstExprBinary::Add:
-            case AstExprBinary::Sub:
-            case AstExprBinary::Mul:
-            case AstExprBinary::Div:
-            case AstExprBinary::FloorDiv:
-            case AstExprBinary::Mod:
-            case AstExprBinary::Pow:
-            case AstExprBinary::CompareLt:
-            case AstExprBinary::CompareGt:
-                writer.maybeSpace(a->right->location.begin, 2);
-                writer.symbol(toString(a->op));
-                break;
-            case AstExprBinary::Concat:
-            case AstExprBinary::CompareNe:
-            case AstExprBinary::CompareEq:
-            case AstExprBinary::CompareLe:
-            case AstExprBinary::CompareGe:
-            case AstExprBinary::Or:
-                writer.maybeSpace(a->right->location.begin, 3);
-                writer.keyword(toString(a->op));
-                break;
-            case AstExprBinary::And:
-                writer.maybeSpace(a->right->location.begin, 4);
-                writer.keyword(toString(a->op));
-                break;
-            default:
-                LUAU_ASSERT(!"Unknown Op");
+                switch (a->op)
+                {
+                case AstExprBinary::Add:
+                case AstExprBinary::Sub:
+                case AstExprBinary::Mul:
+                case AstExprBinary::Div:
+                case AstExprBinary::FloorDiv:
+                case AstExprBinary::Mod:
+                case AstExprBinary::Pow:
+                case AstExprBinary::CompareLt:
+                case AstExprBinary::CompareGt:
+                    writer.maybeSpace(a->right->location.begin, 2);
+                    break;
+                case AstExprBinary::Concat:
+                case AstExprBinary::CompareNe:
+                case AstExprBinary::CompareEq:
+                case AstExprBinary::CompareLe:
+                case AstExprBinary::CompareGe:
+                case AstExprBinary::Or:
+                    writer.maybeSpace(a->right->location.begin, 3);
+                    break;
+                case AstExprBinary::And:
+                    writer.maybeSpace(a->right->location.begin, 4);
+                    break;
+                default:
+                    LUAU_ASSERT(!"Unknown Op");
+                }
             }
+
+            writer.symbol(toString(a->op));
 
             visualize(*a->right);
         }

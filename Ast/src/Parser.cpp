@@ -2331,11 +2331,13 @@ AstExpr* Parser::parseExpr(unsigned int limit)
 
     if (uop)
     {
+        Position opPosition = lexer.current().location.begin;
         nextLexeme();
 
         AstExpr* subexpr = parseExpr(unaryPriority);
 
         expr = allocator.alloc<AstExprUnary>(Location(start, subexpr->location), *uop, subexpr);
+        cstNodeMap[expr] = allocator.alloc<CstExprOp>(opPosition);
     }
     else
     {
@@ -2350,12 +2352,14 @@ AstExpr* Parser::parseExpr(unsigned int limit)
 
     while (op && binaryPriority[*op].left > limit)
     {
+        Position opPosition = lexer.current().location.begin;
         nextLexeme();
 
         // read sub-expression with higher priority
         AstExpr* next = parseExpr(binaryPriority[*op].right);
 
         expr = allocator.alloc<AstExprBinary>(Location(start, next->location), *op, expr, next);
+        cstNodeMap[expr] = allocator.alloc<CstExprOp>(opPosition);
         op = parseBinaryOp(lexer.current());
 
         if (!op)
