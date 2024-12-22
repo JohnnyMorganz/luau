@@ -838,28 +838,25 @@ struct Printer
         }
         else if (const auto& a = program.as<AstStatAssign>())
         {
-            bool first = true;
+            CstStatAssign* cstNode = nullptr;
+            if (const auto& c = cstNodeMap[a])
+                cstNode = c->as<CstStatAssign>();
+
+            CommaSeparatorInserter varComma(writer, cstNode ? cstNode->varsCommaPositions.begin() : nullptr);
             for (const auto& var : a->vars)
             {
-                if (first)
-                    first = false;
-                else
-                    writer.symbol(",");
+                varComma();
                 visualize(*var);
             }
 
-            first = true;
+            if (cstNode)
+                advance(cstNode->equalsPosition);
+            writer.symbol("=");
+
+            CommaSeparatorInserter valueComma(writer, cstNode ? cstNode->valuesCommaPositions.begin() : nullptr);
             for (const auto& value : a->values)
             {
-                if (first)
-                {
-                    writer.maybeSpace(value->location.begin, 1);
-                    writer.symbol("=");
-                    first = false;
-                }
-                else
-                    writer.symbol(",");
-
+                valueComma();
                 visualize(*value);
             }
         }

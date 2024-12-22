@@ -62,6 +62,19 @@ CstStatForIn::CstStatForIn(AstArray<Position> varsCommaPositions, AstArray<Posit
     , valuesCommaPositions(valuesCommaPositions)
 {
 }
+
+Luau::CstStatAssign::CstStatAssign(
+    Luau::AstArray<Luau::Position> varsCommaPositions,
+    Luau::Position equalsPosition,
+    Luau::AstArray<Luau::Position> valuesCommaPositions
+)
+    : CstNode(CstClassIndex())
+    , varsCommaPositions(varsCommaPositions)
+    , equalsPosition(equalsPosition)
+    , valuesCommaPositions(valuesCommaPositions)
+{
+}
+
 }
 
 } // namespace Luau

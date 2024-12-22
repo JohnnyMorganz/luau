@@ -874,6 +874,30 @@ TEST_CASE_FIXTURE(Fixture, "transpile_assign_multiple")
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
 
+TEST_CASE_FIXTURE(Fixture, "transpile_assign_spaces_around_tokens")
+{
+    std::string one = "a = 1";
+    CHECK_EQ(one, transpile(one).code);
+
+    std::string two = "a    = 1";
+    CHECK_EQ(two, transpile(two).code);
+
+    std::string three = "a =    1";
+    CHECK_EQ(three, transpile(three).code);
+
+    std::string four = "a   , b = 1, 2";
+    CHECK_EQ(four, transpile(four).code);
+
+    std::string five = "a,    b = 1, 2";
+    CHECK_EQ(five, transpile(five).code);
+
+    std::string six = "a, b = 1   , 2";
+    CHECK_EQ(six, transpile(six).code);
+    
+    std::string seven = "a, b = 1,    2";
+    CHECK_EQ(seven, transpile(seven).code);
+}
+
 TEST_CASE_FIXTURE(Fixture, "transpile_generic_function")
 {
     std::string code = R"(

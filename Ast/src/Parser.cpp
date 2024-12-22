@@ -1239,10 +1239,12 @@ AstStat* Parser::parseAssignment(AstExpr* initial)
         initial = reportExprError(initial->location, copy({initial}), "Assigned expression must be a variable or a field");
 
     TempVector<AstExpr*> vars(scratchExpr);
+    TempVector<Position> varsCommaPositions(scratchPosition);
     vars.push_back(initial);
 
     while (lexer.current().type == ',')
     {
+        varsCommaPositions.push_back(lexer.current().location.begin);
         nextLexeme();
 
         AstExpr* expr = parsePrimaryExpr(/* asStatement= */ true);
@@ -1253,12 +1255,17 @@ AstStat* Parser::parseAssignment(AstExpr* initial)
         vars.push_back(expr);
     }
 
+    Position equalsPosition = lexer.current().location.begin;
     expectAndConsume('=', "assignment");
 
     TempVector<AstExpr*> values(scratchExprAux);
-    parseExprList(values);
+    // TODO: fine to reuse scratchPosition?
+    TempVector<Position> valuesCommaPositions(scratchPosition);
+    parseExprList(values, &valuesCommaPositions);
 
-    return allocator.alloc<AstStatAssign>(Location(initial->location, values.back()->location), copy(vars), copy(values));
+    AstStatAssign* node = allocator.alloc<AstStatAssign>(Location(initial->location, values.back()->location), copy(vars), copy(values));
+    cstNodeMap[node] = allocator.alloc<CstStatAssign>(copy(varsCommaPositions), equalsPosition, copy(valuesCommaPositions));
+    return node;
 }
 
 // var [`+=' | `-=' | `*=' | `/=' | `%=' | `^=' | `..='] exp
