@@ -205,4 +205,14 @@ public:
     Position opPosition;
 };
 
+class CstStatLocalFunction : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstStatLocalFunction)
+
+    CstStatLocalFunction(Position functionKeywordPosition);
+
+    Position functionKeywordPosition;
+};
+
 }

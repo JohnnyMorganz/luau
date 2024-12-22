@@ -840,6 +840,7 @@ AstStat* Parser::parseLocal(const AstArray<AstAttr*>& attributes)
         Lexeme matchFunction = lexer.current();
         nextLexeme();
 
+        Position functionKeywordPosition = matchFunction.location.begin;
         // matchFunction is only used for diagnostics; to make it suitable for detecting missed indentation between
         // `local function` and `end`, we patch the token to begin at the column where `local` starts
         if (matchFunction.location.begin.line == start.begin.line)
@@ -855,7 +856,9 @@ AstStat* Parser::parseLocal(const AstArray<AstAttr*>& attributes)
 
         Location location{start.begin, body->location.end};
 
-        return allocator.alloc<AstStatLocalFunction>(location, var, body);
+        AstStatLocalFunction* node = allocator.alloc<AstStatLocalFunction>(location, var, body);
+        cstNodeMap[node] = allocator.alloc<CstStatLocalFunction>(functionKeywordPosition);
+        return node;
     }
     else
     {

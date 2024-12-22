@@ -250,6 +250,15 @@ TEST_CASE("local_function")
     CHECK_EQ(two, transpile(two).code);
 }
 
+TEST_CASE("local_function_spaces_around_tokens")
+{
+    const std::string one = R"( local     function p(o, m, ...) end )";
+    CHECK_EQ(one, transpile(one).code);
+
+    const std::string two = R"( local function    p(o, m, ...) end )";
+    CHECK_EQ(two, transpile(two).code);
+}
+
 TEST_CASE("function")
 {
     const std::string one = R"( function p(o, m, g) return 77 end )";

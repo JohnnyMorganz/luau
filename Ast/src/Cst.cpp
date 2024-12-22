@@ -81,6 +81,12 @@ Luau::CstStatCompoundAssign::CstStatCompoundAssign(Luau::Position opPosition)
 {
 }
 
+Luau::CstStatLocalFunction::CstStatLocalFunction(Luau::Position functionKeywordPosition)
+    : CstNode(CstClassIndex())
+    , functionKeywordPosition(functionKeywordPosition)
+{
+}
+
 }
 
 } // namespace Luau

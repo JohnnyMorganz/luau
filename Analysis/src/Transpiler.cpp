@@ -911,7 +911,18 @@ struct Printer
         }
         else if (const auto& a = program.as<AstStatLocalFunction>())
         {
-            writer.keyword("local function");
+            CstStatLocalFunction* cstNode = nullptr;
+            if (const auto& c = cstNodeMap[a])
+                cstNode = c->as<CstStatLocalFunction>();
+
+            writer.keyword("local");
+
+            if (cstNode)
+                advance(cstNode->functionKeywordPosition);
+            else
+                writer.space();
+
+            writer.keyword("function");
             advance(a->name->location.begin);
             writer.identifier(a->name->name.value);
             visualizeFunctionBody(*a->func);
