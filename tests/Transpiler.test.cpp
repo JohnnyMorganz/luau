@@ -844,6 +844,21 @@ TEST_CASE_FIXTURE(Fixture, "transpile_index_expr")
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
 
+TEST_CASE_FIXTURE(Fixture, "index_expr_spaces_around_tokens")
+{
+    std::string one = "local _ = a[2]";
+    CHECK_EQ(one, transpile(one, {}, true).code);
+
+    std::string two = "local _ = a   [2]";
+    CHECK_EQ(two, transpile(two, {}, true).code);
+
+    std::string three = "local _ = a[   2]";
+    CHECK_EQ(three, transpile(three, {}, true).code);
+
+    std::string four = "local _ = a[2   ]";
+    CHECK_EQ(four, transpile(four, {}, true).code);
+}
+
 TEST_CASE_FIXTURE(Fixture, "transpile_unary")
 {
     std::string code = R"(

@@ -468,9 +468,16 @@ struct Printer
         }
         else if (const auto& a = expr.as<AstExprIndexExpr>())
         {
+            CstExprIndexExpr* cstNode = nullptr;
+            if (const auto& c = cstNodeMap[a])
+                cstNode = c->as<CstExprIndexExpr>();
             visualize(*a->expr);
+            if (cstNode)
+                advance(cstNode->openBracketPosition);
             writer.symbol("[");
             visualize(*a->index);
+            if (cstNode)
+                advance(cstNode->closeBracketPosition);
             writer.symbol("]");
         }
         else if (const auto& a = expr.as<AstExprFunction>())

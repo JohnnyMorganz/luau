@@ -113,6 +113,17 @@ public:
     AstArray<Position> commaPositions;
 };
 
+class CstExprIndexExpr : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstExprIndexExpr)
+
+    CstExprIndexExpr(Position openBracketPosition, Position closeBracketPosition);
+
+    Position openBracketPosition;
+    Position closeBracketPosition;
+};
+
 class CstExprTable : public CstNode
 {
 public:

@@ -30,6 +30,13 @@ CstExprCall::CstExprCall(std::optional<Position> openParens, std::optional<Posit
 {
 }
 
+CstExprIndexExpr::CstExprIndexExpr(Position openBracketPosition, Position closeBracketPosition)
+    : CstNode(CstClassIndex())
+    , openBracketPosition(openBracketPosition)
+    , closeBracketPosition(closeBracketPosition)
+{
+}
+
 CstExprTable::CstExprTable(const AstArray<Item>& items)
     : CstNode(CstClassIndex())
     , items(items)

@@ -2459,11 +2459,14 @@ AstExpr* Parser::parsePrimaryExpr(bool asStatement)
 
             AstExpr* index = parseExpr();
 
+            // TODO: maybe we can just use `end`?
+            Position closeBracketPosition = lexer.current().location.begin;
             Position end = lexer.current().location.end;
 
             expectMatchAndConsume(']', matchBracket);
 
             expr = allocator.alloc<AstExprIndexExpr>(Location(start, end), expr, index);
+            cstNodeMap[expr] = allocator.alloc<CstExprIndexExpr>(matchBracket.position, closeBracketPosition);
         }
         else if (lexer.current().type == ':')
         {
