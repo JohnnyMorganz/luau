@@ -825,6 +825,18 @@ TEST_CASE_FIXTURE(Fixture, "transpile_varargs")
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
 
+TEST_CASE_FIXTURE(Fixture, "index_name_spaces_around_tokens")
+{
+    std::string one = "local _ = a.name";
+    CHECK_EQ(one, transpile(one, {}, true).code);
+
+    std::string two = "local _ = a   .name";
+    CHECK_EQ(two, transpile(two, {}, true).code);
+
+    std::string three = "local _ = a.   name";
+    CHECK_EQ(three, transpile(three, {}, true).code);
+}
+
 TEST_CASE_FIXTURE(Fixture, "transpile_index_expr")
 {
     std::string code = "local a = {1, 2, 3} local b = a[2]";

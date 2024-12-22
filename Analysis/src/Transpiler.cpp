@@ -461,7 +461,9 @@ struct Printer
         else if (const auto& a = expr.as<AstExprIndexName>())
         {
             visualize(*a->expr);
+            advance(a->opPosition);
             writer.symbol(std::string(1, a->op));
+            advance(a->indexLocation.begin);
             writer.write(a->index.value);
         }
         else if (const auto& a = expr.as<AstExprIndexExpr>())
