@@ -648,6 +648,25 @@ local test = (
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
 
+TEST_CASE_FIXTURE(Fixture, "stmt_semicolon")
+{
+    std::string code = R"( local test = 1; )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( local test = 1  ; )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
+TEST_CASE_FIXTURE(Fixture, "do_block_ending_with_semicolon")
+{
+    std::string code = R"(
+        do
+            return;
+        end;
+    )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
 TEST_CASE("roundtrip_types")
 {
     const std::string code = R"(

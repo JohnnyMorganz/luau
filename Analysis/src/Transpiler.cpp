@@ -1028,7 +1028,10 @@ struct Printer
         }
 
         if (program.hasSemicolon)
+        {
+            advance(Position{program.location.end.line, program.location.end.column - 1});
             writer.symbol(";");
+        }
     }
 
     void visualizeFunctionBody(AstExprFunction& func)

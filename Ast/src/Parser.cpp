@@ -287,8 +287,11 @@ AstStatBlock* Parser::parseBlockNoScope()
 
         if (lexer.current().type == ';')
         {
+            // TODO: DEVIATION FROM ORIGINAL CODE - MOVE INTO SEPARATE PR AND FLAG APPROPRIATELY
+            Position semicolonPosition = lexer.current().location.end;
             nextLexeme();
             stat->hasSemicolon = true;
+            stat->location.end = semicolonPosition;
         }
 
         body.push_back(stat);
