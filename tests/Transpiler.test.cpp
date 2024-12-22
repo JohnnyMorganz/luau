@@ -637,6 +637,17 @@ TEST_CASE("emit_a_do_block_in_cases_of_potentially_ambiguous_syntax")
     CHECK_EQ(code, transpile(code).code);
 }
 
+TEST_CASE_FIXTURE(Fixture, "parentheses_multiline")
+{
+    std::string code = R"(
+local test = (
+    x
+)
+    )";
+
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
 TEST_CASE("roundtrip_types")
 {
     const std::string code = R"(

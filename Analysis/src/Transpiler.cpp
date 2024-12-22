@@ -350,6 +350,7 @@ struct Printer
         {
             writer.symbol("(");
             visualize(*a->expr);
+            advance(Position{a->location.end.line, a->location.end.column - 1});
             writer.symbol(")");
         }
         else if (expr.is<AstExprConstantNil>())
