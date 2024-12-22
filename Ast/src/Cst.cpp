@@ -37,6 +37,12 @@ CstExprIndexExpr::CstExprIndexExpr(Position openBracketPosition, Position closeB
 {
 }
 
+CstExprFunction::CstExprFunction(AstArray<Position> argsCommaPositions)
+    : CstNode(CstClassIndex())
+    , argsCommaPositions(argsCommaPositions)
+{
+}
+
 CstExprTable::CstExprTable(const AstArray<Item>& items)
     : CstNode(CstClassIndex())
     , items(items)

@@ -268,6 +268,33 @@ TEST_CASE("function")
     CHECK_EQ(two, transpile(two).code);
 }
 
+TEST_CASE("function_spaces_around_tokens")
+{
+    const std::string two = R"( function     p(o, m, ...) end )";
+    CHECK_EQ(two, transpile(two).code);
+
+    const std::string three = R"( function p(   o, m, ...) end )";
+    CHECK_EQ(three, transpile(three).code);
+
+    const std::string four = R"( function p(o   , m, ...) end )";
+    CHECK_EQ(four, transpile(four).code);
+
+    const std::string five = R"( function p(o,   m, ...) end )";
+    CHECK_EQ(five, transpile(five).code);
+
+    const std::string six = R"( function p(o, m   , ...) end )";
+    CHECK_EQ(six, transpile(six).code);
+
+    const std::string seven = R"( function p(o, m,   ...) end )";
+    CHECK_EQ(seven, transpile(seven).code);
+
+    const std::string eight = R"( function p(o, m, ...   ) end )";
+    CHECK_EQ(eight, transpile(eight).code);
+
+    const std::string nine = R"( function p(o, m, ...)   end )";
+    CHECK_EQ(nine, transpile(nine).code);
+}
+
 TEST_CASE("returns_spaces_around_tokens")
 {
     const std::string one = R"( return    1 )";

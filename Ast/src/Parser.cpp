@@ -1335,13 +1335,14 @@ std::pair<AstExprFunction*, AstLocal*> Parser::parseFunctionBody(
         matchRecoveryStopOnToken[')']++;
 
     TempVector<Binding> args(scratchBinding);
+    TempVector<Position> argsCommaPositions(scratchPosition);
 
     bool vararg = false;
     Location varargLocation;
     AstTypePack* varargAnnotation = nullptr;
 
     if (lexer.current().type != ')')
-        std::tie(vararg, varargLocation, varargAnnotation) = parseBindingList(args, /* allowDot3= */ true);
+        std::tie(vararg, varargLocation, varargAnnotation) = parseBindingList(args, /* allowDot3= */ true, &argsCommaPositions);
 
     std::optional<Location> argLocation;
 
@@ -1380,25 +1381,25 @@ std::pair<AstExprFunction*, AstLocal*> Parser::parseFunctionBody(
     bool hasEnd = expectMatchEndAndConsume(Lexeme::ReservedEnd, matchFunction);
     body->hasEnd = hasEnd;
 
-    return {
-        allocator.alloc<AstExprFunction>(
-            Location(start, end),
-            attributes,
-            generics,
-            genericPacks,
-            self,
-            vars,
-            vararg,
-            varargLocation,
-            body,
-            functionStack.size(),
-            debugname,
-            typelist,
-            varargAnnotation,
-            argLocation
-        ),
-        funLocal
-    };
+    AstExprFunction* node = allocator.alloc<AstExprFunction>(
+        Location(start, end),
+        attributes,
+        generics,
+        genericPacks,
+        self,
+        vars,
+        vararg,
+        varargLocation,
+        body,
+        functionStack.size(),
+        debugname,
+        typelist,
+        varargAnnotation,
+        argLocation
+    );
+    cstNodeMap[node] = allocator.alloc<CstExprFunction>(copy(argsCommaPositions));
+
+    return {node, funLocal};
 }
 
 // explist ::= {exp `,'} exp

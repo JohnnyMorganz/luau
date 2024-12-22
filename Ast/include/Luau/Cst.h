@@ -124,6 +124,20 @@ public:
     Position closeBracketPosition;
 };
 
+class CstExprFunction : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstExprFunction)
+
+    CstExprFunction(AstArray<Position> argsCommaPositions);
+
+    // TODO:
+    //    Position openGenericsPosition;
+    //    AstArray<Position> genericsCommaPositions;
+    //    Position closeGenericsPosition;
+    AstArray<Position> argsCommaPositions;
+};
+
 class CstExprTable : public CstNode
 {
 public:

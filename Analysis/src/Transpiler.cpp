@@ -1033,6 +1033,12 @@ struct Printer
 
     void visualizeFunctionBody(AstExprFunction& func)
     {
+        CstExprFunction* cstNode = nullptr;
+        if (const auto& c = cstNodeMap[&func])
+            cstNode = c->as<CstExprFunction>();
+
+        // TODO: need to handle attributes, generics, generics defaults, and return type (incl. parentheses of return type)
+
         if (func.generics.size > 0 || func.genericPacks.size > 0)
         {
             CommaSeparatorInserter comma(writer);
@@ -1055,8 +1061,10 @@ struct Printer
             writer.symbol(">");
         }
 
+        if (func.argLocation)
+            advance(func.argLocation->begin);
         writer.symbol("(");
-        CommaSeparatorInserter comma(writer);
+        CommaSeparatorInserter comma(writer, cstNode ? cstNode->argsCommaPositions.begin() : nullptr);
 
         for (size_t i = 0; i < func.args.size; ++i)
         {
@@ -1086,6 +1094,8 @@ struct Printer
             }
         }
 
+        if (func.argLocation)
+            advance(Position{func.argLocation->end.line, func.argLocation->end.column - 1});
         writer.symbol(")");
 
         if (writeTypes && func.returnAnnotation)
