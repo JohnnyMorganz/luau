@@ -94,6 +94,32 @@ struct StringWriter : Writer
         lastChar = ' ';
     }
 
+    void writeMultiline(std::string_view s)
+    {
+        if (s.empty())
+            return;
+
+        ss.append(s.data(), s.size());
+        lastChar = s[s.size() - 1];
+
+        size_t index = 0;
+        size_t numLines = 0;
+        while (true)
+        {
+            auto newlinePos = s.find('\n', index);
+            if (newlinePos == std::string::npos)
+                break;
+            numLines++;
+            index = newlinePos + 1;
+        }
+
+        pos.line += numLines;
+        if (numLines > 0)
+            pos.column = unsigned(s.size()) - index;
+        else
+            pos.column += unsigned(s.size());
+    }
+
     void write(std::string_view s) override
     {
         if (s.empty())
@@ -171,7 +197,7 @@ struct StringWriter : Writer
             write('[');
             write(blocks);
             write('[');
-            write(s);
+            writeMultiline(s);
             write(']');
             write(blocks);
             write(']');
@@ -197,7 +223,7 @@ struct StringWriter : Writer
             }
 
             write(quote);
-            write(s);
+            writeMultiline(s);
             write(quote);
         }
     }
