@@ -514,7 +514,11 @@ AstStat* Parser::parseDo()
 
     body->location.begin = start.begin;
 
+    Position endPosition = lexer.current().location.end;
     body->hasEnd = expectMatchEndAndConsume(Lexeme::ReservedEnd, matchDo);
+    // TODO: DEVIATION FROM ORIGINAL CODE - MOVE INTO SEPARATE PR AND FLAG APPROPRIATELY
+    if (body->hasEnd)
+        body->location.end = endPosition;
 
     return body;
 }

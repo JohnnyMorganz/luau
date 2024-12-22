@@ -710,7 +710,6 @@ struct Printer
             writer.keyword("do");
             for (const auto& s : block->body)
                 visualize(*s);
-            writer.advance(block->location.end);
             writeEnd(program.location);
         }
         else if (const auto& a = program.as<AstStatIf>())

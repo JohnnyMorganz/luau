@@ -615,6 +615,19 @@ TEST_CASE("do_blocks")
     CHECK_EQ(code, transpile(code).code);
 }
 
+TEST_CASE("nested_do_block")
+{
+    const std::string code = R"(
+        do
+            do
+                local x = 1
+            end
+        end
+    )";
+
+    CHECK_EQ(code, transpile(code).code);
+}
+
 TEST_CASE("emit_a_do_block_in_cases_of_potentially_ambiguous_syntax")
 {
     const std::string code = R"(
