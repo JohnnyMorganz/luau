@@ -907,6 +907,12 @@ TEST_CASE_FIXTURE(Fixture, "index_name_spaces_around_tokens")
     CHECK_EQ(three, transpile(three, {}, true).code);
 }
 
+TEST_CASE_FIXTURE(Fixture, "index_name_ends_with_digit")
+{
+    std::string code = "sparkles.Color = Color3.new()";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
 TEST_CASE_FIXTURE(Fixture, "transpile_index_expr")
 {
     std::string code = "local a = {1, 2, 3} local b = a[2]";

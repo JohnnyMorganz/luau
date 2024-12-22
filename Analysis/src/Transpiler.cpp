@@ -161,8 +161,9 @@ struct StringWriter : Writer
 
     void symbol(std::string_view s) override
     {
-        if (isDigit(lastChar) && s[0] == '.')
-            space();
+        // TODO: figure out why this was introduced. Maybe gate behind CST enabled check
+        //  if (isDigit(lastChar) && s[0] == '.')
+        //      space();
 
         write(s);
     }
