@@ -727,15 +727,16 @@ struct Printer
             writer.keyword("continue");
         else if (const auto& a = program.as<AstStatReturn>())
         {
+            CstStatReturn* cstNode = nullptr;
+            if (const auto& c = cstNodeMap[a])
+                cstNode = c->as<CstStatReturn>();
+
             writer.keyword("return");
 
-            bool first = true;
+            CommaSeparatorInserter comma(writer, cstNode ? cstNode->commaPositions.begin() : nullptr);
             for (const auto& expr : a->list)
             {
-                if (first)
-                    first = false;
-                else
-                    writer.symbol(",");
+                comma();
                 visualize(*expr);
             }
         }

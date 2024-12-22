@@ -36,6 +36,12 @@ CstExprTable::CstExprTable(const AstArray<Item>& items)
 {
 }
 
+CstStatReturn::CstStatReturn(AstArray<Position> commaPositions)
+    : CstNode(CstClassIndex())
+    , commaPositions(commaPositions)
+{
+}
+
 CstStatFor::CstStatFor(Position equalsPosition, Position endCommaPosition, std::optional<Position> stepCommaPosition)
     : CstNode(CstClassIndex())
     , equalsPosition(equalsPosition)

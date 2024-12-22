@@ -909,13 +909,16 @@ AstStat* Parser::parseReturn()
     nextLexeme();
 
     TempVector<AstExpr*> list(scratchExpr);
+    TempVector<Position> commaPositions(scratchPosition);
 
     if (!blockFollow(lexer.current()) && lexer.current().type != ';')
-        parseExprList(list);
+        parseExprList(list, &commaPositions);
 
     Location end = list.empty() ? start : list.back()->location;
 
-    return allocator.alloc<AstStatReturn>(Location(start, end), copy(list));
+    AstStatReturn* node = allocator.alloc<AstStatReturn>(Location(start, end), copy(list));
+    cstNodeMap[node] = allocator.alloc<CstStatReturn>(copy(commaPositions));
+    return node;
 }
 
 // type Name [`<' varlist `>'] `=' Type

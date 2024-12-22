@@ -223,6 +223,18 @@ TEST_CASE("function")
     CHECK_EQ(two, transpile(two).code);
 }
 
+TEST_CASE("returns_spaces_around_tokens")
+{
+    const std::string one = R"( return    1 )";
+    CHECK_EQ(one, transpile(one).code);
+
+    const std::string two = R"( return 1   , 2 )";
+    CHECK_EQ(two, transpile(two).code);
+
+    const std::string three = R"( return 1,  2 )";
+    CHECK_EQ(three, transpile(three).code);
+}
+
 TEST_CASE("table_literals")
 {
     const std::string code = R"( local t={1, 2, 3, foo='bar', baz=99,[5.5]='five point five', 'end'} )";
