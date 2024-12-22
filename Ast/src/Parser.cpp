@@ -517,11 +517,13 @@ AstStat* Parser::parseDo()
 
     body->location.begin = start.begin;
 
-    Position endPosition = lexer.current().location.end;
+    Location endLocation = lexer.current().location;
     body->hasEnd = expectMatchEndAndConsume(Lexeme::ReservedEnd, matchDo);
     // TODO: DEVIATION FROM ORIGINAL CODE - MOVE INTO SEPARATE PR AND FLAG APPROPRIATELY
     if (body->hasEnd)
-        body->location.end = endPosition;
+        body->location.end = endLocation.end;
+
+    cstNodeMap[body] = allocator.alloc<CstStatDo>(endLocation.begin);
 
     return body;
 }

@@ -55,6 +55,12 @@ CstExprOp::CstExprOp(Position opPosition)
 {
 }
 
+CstStatDo::CstStatDo(Position endPosition)
+    : CstNode(CstClassIndex())
+    , endPosition(endPosition)
+{
+}
+
 CstStatReturn::CstStatReturn(AstArray<Position> commaPositions)
     : CstNode(CstClassIndex())
     , commaPositions(commaPositions)

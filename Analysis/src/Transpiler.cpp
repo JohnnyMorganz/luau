@@ -738,7 +738,13 @@ struct Printer
             writer.keyword("do");
             for (const auto& s : block->body)
                 visualize(*s);
-            writeEnd(program.location);
+            if (const auto& c = cstNodeMap[block])
+            {
+                advance(c->as<CstStatDo>()->endPosition);
+                writer.keyword("end");
+            }
+            else
+                writeEnd(program.location);
         }
         else if (const auto& a = program.as<AstStatIf>())
         {

@@ -175,6 +175,16 @@ public:
     Position opPosition;
 };
 
+class CstStatDo : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstStatDo)
+
+    CstStatDo(Position endPosition);
+
+    Position endPosition;
+};
+
 class CstStatReturn : public CstNode
 {
 public:
