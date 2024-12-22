@@ -196,6 +196,16 @@ TEST_CASE("repeat_until_loop")
     CHECK_EQ(code, transpile(code).code);
 }
 
+TEST_CASE("repeat_until_loop_condition_on_new_line")
+{
+    const std::string code = R"(
+    repeat
+        print()
+    until
+        f(x) )";
+    CHECK_EQ(code, transpile(code).code);
+}
+
 TEST_CASE("lambda")
 {
     const std::string one = R"( local p=function(o, m, g) return 77 end )";

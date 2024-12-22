@@ -765,7 +765,10 @@ struct Printer
         {
             writer.keyword("repeat");
             visualizeBlock(*a->body);
-            if (a->condition->location.begin.column > 5)
+            // TODO: what if 'hasEnd' is false?
+            if (const auto& c = cstNodeMap[a])
+                writer.advance(c->as<CstStatRepeat>()->untilPosition);
+            else if (a->condition->location.begin.column > 5)
                 writer.advance(Position{a->condition->location.begin.line, a->condition->location.begin.column - 6});
             writer.keyword("until");
             visualize(*a->condition);

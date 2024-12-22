@@ -61,6 +61,12 @@ CstStatDo::CstStatDo(Position endPosition)
 {
 }
 
+CstStatRepeat::CstStatRepeat(Position untilPosition)
+    : CstNode(CstClassIndex())
+    , untilPosition(untilPosition)
+{
+}
+
 CstStatReturn::CstStatReturn(AstArray<Position> commaPositions)
     : CstNode(CstClassIndex())
     , commaPositions(commaPositions)

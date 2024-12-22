@@ -185,6 +185,16 @@ public:
     Position endPosition;
 };
 
+class CstStatRepeat : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstStatRepeat)
+
+    CstStatRepeat(Position untilPosition);
+
+    Position untilPosition;
+};
+
 class CstStatReturn : public CstNode
 {
 public:
