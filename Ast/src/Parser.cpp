@@ -368,12 +368,13 @@ AstStat* Parser::parseStat()
     AstName ident = getIdentifier(expr);
 
     if (ident == "type")
-        return parseTypeAlias(expr->location, /* exported= */ false);
+        return parseTypeAlias(expr->location, /* exported= */ false, expr->location.begin);
 
     if (ident == "export" && lexer.current().type == Lexeme::Name && AstName(lexer.current().name) == "type")
     {
+        Position typeKeywordPosition = lexer.current().location.begin;
         nextLexeme();
-        return parseTypeAlias(expr->location, /* exported= */ true);
+        return parseTypeAlias(expr->location, /* exported= */ true, typeKeywordPosition);
     }
 
     if (ident == "continue")
@@ -945,7 +946,7 @@ AstStat* Parser::parseReturn()
 }
 
 // type Name [`<' varlist `>'] `=' Type
-AstStat* Parser::parseTypeAlias(const Location& start, bool exported)
+AstStat* Parser::parseTypeAlias(const Location& start, bool exported, Position typeKeywordPosition)
 {
     // parsing a type function
     if (lexer.current().type == Lexeme::ReservedFunction)
@@ -961,13 +962,23 @@ AstStat* Parser::parseTypeAlias(const Location& start, bool exported)
     if (!name)
         name = Name(nameError, lexer.current().location);
 
-    auto [generics, genericPacks] = parseGenericTypeList(/* withDefaultValues= */ true);
+    Position genericsOpenPosition{0, 0};
+    TempVector<Position> genericsCommaPositions(scratchPosition);
+    Position genericsClosePosition{0, 0};
+    auto [generics, genericPacks] =
+        parseGenericTypeList(/* withDefaultValues= */ true, &genericsOpenPosition, &genericsCommaPositions, &genericsClosePosition);
 
+    Position equalsPosition = lexer.current().location.begin;
     expectAndConsume('=', "type alias");
 
     AstType* type = parseType();
 
-    return allocator.alloc<AstStatTypeAlias>(Location(start, type->location), name->name, name->location, generics, genericPacks, type, exported);
+    AstStatTypeAlias* node =
+        allocator.alloc<AstStatTypeAlias>(Location(start, type->location), name->name, name->location, generics, genericPacks, type, exported);
+    cstNodeMap[node] = allocator.alloc<CstStatTypeAlias>(
+        typeKeywordPosition, genericsOpenPosition, copy(genericsCommaPositions), genericsClosePosition, equalsPosition
+    );
+    return node;
 }
 
 // type function Name `(' arglist `)' `=' funcbody `end'
@@ -2988,7 +2999,12 @@ Parser::Name Parser::parseIndexName(const char* context, const Position& previou
     return Name(nameError, location);
 }
 
-std::pair<AstArray<AstGenericType>, AstArray<AstGenericTypePack>> Parser::parseGenericTypeList(bool withDefaultValues)
+std::pair<AstArray<AstGenericType>, AstArray<AstGenericTypePack>> Parser::parseGenericTypeList(
+    bool withDefaultValues,
+    Position* openPosition,
+    TempVector<Position>* commaPositions,
+    Position* closePosition
+)
 {
     TempVector<AstGenericType> names{scratchGenericTypes};
     TempVector<AstGenericTypePack> namePacks{scratchGenericTypePacks};
@@ -2996,6 +3012,8 @@ std::pair<AstArray<AstGenericType>, AstArray<AstGenericTypePack>> Parser::parseG
     if (lexer.current().type == '<')
     {
         Lexeme begin = lexer.current();
+        if (openPosition)
+            *openPosition = begin.location.begin;
         nextLexeme();
 
         bool seenPack = false;
@@ -3065,6 +3083,8 @@ std::pair<AstArray<AstGenericType>, AstArray<AstGenericTypePack>> Parser::parseG
 
             if (lexer.current().type == ',')
             {
+                if (commaPositions)
+                    commaPositions->push_back(lexer.current().location.begin);
                 nextLexeme();
 
                 if (lexer.current().type == '>')
@@ -3077,6 +3097,8 @@ std::pair<AstArray<AstGenericType>, AstArray<AstGenericTypePack>> Parser::parseG
                 break;
         }
 
+        if (closePosition)
+            *closePosition = lexer.current().location.begin;
         expectMatchAndConsume('>', begin);
     }
 

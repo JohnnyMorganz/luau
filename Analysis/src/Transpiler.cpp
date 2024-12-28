@@ -986,15 +986,25 @@ struct Printer
         {
             if (writeTypes)
             {
+                CstStatTypeAlias* cstNode = nullptr;
+                if (const auto& c = cstNodeMap[a])
+                    cstNode = c->as<CstStatTypeAlias>();
+
                 if (a->exported)
                     writer.keyword("export");
 
+                if (cstNode)
+                    advance(cstNode->typeKeywordPosition);
+
                 writer.keyword("type");
+                advance(a->nameLocation.begin);
                 writer.identifier(a->name.value);
                 if (a->generics.size > 0 || a->genericPacks.size > 0)
                 {
+                    if (cstNode)
+                        advance(cstNode->genericsOpenPosition);
                     writer.symbol("<");
-                    CommaSeparatorInserter comma(writer);
+                    CommaSeparatorInserter comma(writer, cstNode ? cstNode->genericsCommaPositions.begin() : nullptr);
 
                     for (auto o : a->generics)
                     {
@@ -1027,9 +1037,14 @@ struct Printer
                         }
                     }
 
+                    if (cstNode)
+                        advance(cstNode->genericsClosePosition);
                     writer.symbol(">");
                 }
-                writer.maybeSpace(a->type->location.begin, 2);
+                if (cstNode)
+                    advance(cstNode->equalsPosition);
+                else
+                    writer.maybeSpace(a->type->location.begin, 2);
                 writer.symbol("=");
                 visualizeTypeAnnotation(*a->type);
             }

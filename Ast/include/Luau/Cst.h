@@ -286,10 +286,18 @@ class CstStatTypeAlias : public CstNode
 public:
     LUAU_CST_RTTI(CstStatTypeAlias)
 
-    CstStatTypeAlias(Position typeKeywordPosition, AstArray<Position> genericsCommaPositions, Position equalsPosition);
+    CstStatTypeAlias(
+        Position typeKeywordPosition,
+        Position genericsOpenPosition,
+        AstArray<Position> genericsCommaPositions,
+        Position genericsClosePosition,
+        Position equalsPosition
+    );
 
     Position typeKeywordPosition;
+    Position genericsOpenPosition;
     AstArray<Position> genericsCommaPositions;
+    Position genericsClosePosition;
     Position equalsPosition;
 };
 

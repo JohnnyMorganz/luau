@@ -949,8 +949,11 @@ TEST_CASE_FIXTURE(Fixture, "type_alias_spaces_around_tokens")
 
     code = R"( type Foo<X, Y, Z...  > = string )";
     CHECK_EQ(code, transpile(code, {}, true).code);
+}
 
-    code = R"( type Foo<X = string, Z... = ...any> = string )";
+TEST_CASE_FIXTURE(Fixture, "type_alias_with_defaults_spaces_around_tokens")
+{
+    std::string code = R"( type Foo<X = string, Z... = ...any> = string )";
     CHECK_EQ(code, transpile(code, {}, true).code);
 
     code = R"( type Foo<X   = string, Z... = ...any> = string )";

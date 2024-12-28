@@ -124,6 +124,22 @@ Luau::CstStatLocalFunction::CstStatLocalFunction(Luau::Position functionKeywordP
 {
 }
 
+CstStatTypeAlias::CstStatTypeAlias(
+    Position typeKeywordPosition,
+    Position genericsOpenPosition,
+    AstArray<Position> genericsCommaPositions,
+    Position genericsClosePosition,
+    Position equalsPosition
+)
+    : CstNode(CstClassIndex())
+    , typeKeywordPosition(typeKeywordPosition)
+    , genericsOpenPosition(genericsOpenPosition)
+    , genericsCommaPositions(genericsCommaPositions)
+    , genericsClosePosition(genericsClosePosition)
+    , equalsPosition(equalsPosition)
+{
+}
+
 CstTypeReference::CstTypeReference(
     std::optional<Position> prefixPointPosition,
     Position openParametersPosition,
