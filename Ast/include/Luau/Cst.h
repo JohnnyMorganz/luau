@@ -304,4 +304,15 @@ public:
     Position functionKeywordPosition;
 };
 
+class CstTypeTypeof : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstTypeTypeof)
+
+    CstTypeTypeof(Position openPosition, Position closePosition);
+
+    Position openPosition;
+    Position closePosition;
+};
+
 }

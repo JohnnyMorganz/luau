@@ -1197,7 +1197,7 @@ struct Printer
         }
     }
 
-    void visualizeTypeAnnotation(const AstType& typeAnnotation)
+    void visualizeTypeAnnotation(AstType& typeAnnotation)
     {
         advance(typeAnnotation.location.begin);
         if (const auto& a = typeAnnotation.as<AstTypeReference>())
@@ -1298,9 +1298,16 @@ struct Printer
         }
         else if (auto a = typeAnnotation.as<AstTypeTypeof>())
         {
+            CstTypeTypeof* cstNode = nullptr;
+            if (const auto& c = cstNodeMap[a])
+                cstNode = c->as<CstTypeTypeof>();
             writer.keyword("typeof");
+            if (cstNode)
+                advance(cstNode->openPosition);
             writer.symbol("(");
             visualize(*a->expr);
+            if (cstNode)
+                advance(cstNode->closePosition);
             writer.symbol(")");
         }
         else if (const auto& a = typeAnnotation.as<AstTypeUnion>())

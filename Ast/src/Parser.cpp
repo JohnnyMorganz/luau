@@ -2081,7 +2081,9 @@ AstTypeOrPack Parser::parseSimpleType(bool allowPack, bool inDeclarationContext)
 
             expectMatchAndConsume(')', typeofBegin);
 
-            return {allocator.alloc<AstTypeTypeof>(Location(start, end), expr), {}};
+            AstTypeTypeof* node = allocator.alloc<AstTypeTypeof>(Location(start, end), expr);
+            cstNodeMap[node] = allocator.alloc<CstTypeTypeof>(typeofBegin.location.begin, end.begin);
+            return {node, {}};
         }
 
         bool hasParameters = false;

@@ -124,6 +124,11 @@ Luau::CstStatLocalFunction::CstStatLocalFunction(Luau::Position functionKeywordP
 {
 }
 
+CstTypeTypeof::CstTypeTypeof(Position openPosition, Position closePosition)
+    : CstNode(CstClassIndex())
+    , openPosition(openPosition)
+    , closePosition(closePosition)
+{
 }
 
 } // namespace Luau

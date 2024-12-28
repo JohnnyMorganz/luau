@@ -305,6 +305,63 @@ TEST_CASE("function_spaces_around_tokens")
     CHECK_EQ(nine, transpile(nine).code);
 }
 
+TEST_CASE("function_with_types_spaces_around_tokens")
+{
+    std::string code = R"( function p<X, Y, Z...>(o: string, m: number, ...: any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p   <X, Y, Z...>(o: string, m: number, ...: any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X   , Y, Z...>(o: string, m: number, ...: any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X,   Y, Z...>(o: string, m: number, ...: any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X, Y,   Z...>(o: string, m: number, ...: any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X, Y, Z  ...>(o: string, m: number, ...: any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X, Y, Z...  >(o: string, m: number, ...: any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X, Y, Z...>  (o: string, m: number, ...: any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X, Y, Z...>(o  : string, m: number, ...: any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X, Y, Z...>(o:   string, m: number, ...: any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X, Y, Z...>(o: string  , m: number, ...: any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X, Y, Z...>(o: string,   m: number, ...: any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X, Y, Z...>(o: string, m: number,   ...: any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X, Y, Z...>(o: string, m: number, ...  : any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X, Y, Z...>(o: string, m: number, ...:   any): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X, Y, Z...>(o: string, m: number, ...: any  ): string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X, Y, Z...>(o: string, m: number, ...: any)  : string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( function p<X, Y, Z...>(o: string, m: number, ...: any):   string end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
 TEST_CASE("returns_spaces_around_tokens")
 {
     const std::string one = R"( return    1 )";
@@ -846,6 +903,69 @@ TEST_CASE_FIXTURE(Fixture, "transpile_if_then_else")
     CHECK_EQ(code, transpile(code).code);
 }
 
+TEST_CASE_FIXTURE(Fixture, "type_alias_spaces_around_tokens")
+{
+    std::string code = R"( type Foo = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type    Foo = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo    = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo =    string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( export type Foo = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( export    type Foo = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo<X, Y, Z...> = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo  <X, Y, Z...> = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo<  X, Y, Z...> = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo<X  , Y, Z...> = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo<X,   Y, Z...> = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo<X, Y  , Z...> = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo<X, Y,   Z...> = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo<X, Y, Z  ...> = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo<X, Y, Z...  > = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo<X = string, Z... = ...any> = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo<X   = string, Z... = ...any> = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo<X =   string, Z... = ...any> = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo<X = string, Z...   = ...any> = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo<X = string, Z... =   ...any> = string )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
 TEST_CASE_FIXTURE(Fixture, "transpile_type_reference_import")
 {
     fileResolver.source["game/A"] = R"(
@@ -1058,7 +1178,7 @@ TEST_CASE_FIXTURE(Fixture, "transpile_assign_spaces_around_tokens")
 
     std::string six = "a, b = 1   , 2";
     CHECK_EQ(six, transpile(six).code);
-    
+
     std::string seven = "a, b = 1,    2";
     CHECK_EQ(seven, transpile(seven).code);
 }
@@ -1208,6 +1328,24 @@ TEST_CASE_FIXTURE(Fixture, "transpile_type_functions")
 {
     std::string code = R"( type function foo(arg1, arg2) if arg1 == arg2 then return arg1 end return arg2 end )";
 
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
+TEST_CASE_FIXTURE(Fixture, "transpile_typeof_spaces_around_tokens")
+{
+    std::string code = R"( type X = typeof(x) )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type X =    typeof(x) )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type X = typeof   (x) )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type X = typeof(   x) )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type X = typeof(x   ) )";
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
 
