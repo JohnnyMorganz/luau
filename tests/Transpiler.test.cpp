@@ -1349,4 +1349,31 @@ TEST_CASE_FIXTURE(Fixture, "transpile_typeof_spaces_around_tokens")
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
 
+TEST_CASE("transpile_single_quoted_string_types")
+{
+    const std::string code = R"( type a = 'hello world' )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
+TEST_CASE("transpile_double_quoted_string_types")
+{
+    const std::string code = R"( type a = "hello world" )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
+TEST_CASE("transpile_raw_string_types")
+{
+    std::string code = R"( type a = [[ hello world ]] )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+    
+    code = R"( type a = [==[ hello world ]==] )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
+TEST_CASE("transpile_escaped_string_types")
+{
+    const std::string code = R"( type a = "\\b\\t\\n\\\\" )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
 TEST_SUITE_END();

@@ -315,4 +315,16 @@ public:
     Position closePosition;
 };
 
+class CstTypeSingletonString : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstTypeSingletonString)
+
+    CstTypeSingletonString(AstArray<char> sourceString, CstExprConstantString::QuoteStyle quoteStyle, unsigned int blockDepth);
+
+    AstArray<char> sourceString;
+    CstExprConstantString::QuoteStyle quoteStyle;
+    unsigned int blockDepth;
+};
+
 }

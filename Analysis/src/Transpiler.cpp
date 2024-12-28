@@ -1386,7 +1386,15 @@ struct Printer
         }
         else if (const auto& a = typeAnnotation.as<AstTypeSingletonString>())
         {
-            writer.string(std::string_view(a->value.data, a->value.size));
+            if (const auto c = cstNodeMap[a])
+            {
+                auto cstNode = c->as<CstTypeSingletonString>();
+                writer.sourceString(
+                    std::string_view(cstNode->sourceString.data, cstNode->sourceString.size), cstNode->quoteStyle, cstNode->blockDepth
+                );
+            }
+            else
+                writer.string(std::string_view(a->value.data, a->value.size));
         }
         else if (typeAnnotation.is<AstTypeError>())
         {

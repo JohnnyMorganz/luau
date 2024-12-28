@@ -131,4 +131,12 @@ CstTypeTypeof::CstTypeTypeof(Position openPosition, Position closePosition)
 {
 }
 
+CstTypeSingletonString::CstTypeSingletonString(AstArray<char> sourceString, CstExprConstantString::QuoteStyle quoteStyle, unsigned int blockDepth)
+    : CstNode(CstClassIndex())
+    , sourceString(sourceString)
+    , quoteStyle(quoteStyle)
+    , blockDepth(blockDepth)
+{
+    LUAU_ASSERT(quoteStyle != CstExprConstantString::QuotedInterp);
+}
 } // namespace Luau

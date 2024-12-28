@@ -2031,10 +2031,25 @@ AstTypeOrPack Parser::parseSimpleType(bool allowPack, bool inDeclarationContext)
     }
     else if (lexer.current().type == Lexeme::RawString || lexer.current().type == Lexeme::QuotedString)
     {
+        CstExprConstantString::QuoteStyle style;
+        unsigned int blockDepth = 0;
+        if (lexer.current().type == Lexeme::RawString)
+        {
+            style = CstExprConstantString::QuotedRaw;
+            blockDepth = lexer.current().getBlockDepth();
+        }
+        else
+            style = lexer.current().getQuoteStyle() == Lexeme::QuoteStyle::Double ? CstExprConstantString::QuotedDouble
+                                                                                  : CstExprConstantString::QuotedSingle;
+
+        scratchData.assign(lexer.current().data, lexer.current().getLength());
+        AstArray<char> sourceString = copy(scratchData);
         if (std::optional<AstArray<char>> value = parseCharArray())
         {
             AstArray<char> svalue = *value;
-            return {allocator.alloc<AstTypeSingletonString>(start, svalue)};
+            auto node = allocator.alloc<AstTypeSingletonString>(start, svalue);
+            cstNodeMap[node] = allocator.alloc<CstTypeSingletonString>(sourceString, style, blockDepth);
+            return {node};
         }
         else
             return {reportTypeError(start, {}, "String literal contains malformed escape sequence")};
