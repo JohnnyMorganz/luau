@@ -1361,6 +1361,18 @@ TEST_CASE_FIXTURE(Fixture, "transpile_type_functions")
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
 
+TEST_CASE_FIXTURE(Fixture, "transpile_type_functions_spaces_around_tokens")
+{
+    std::string code = R"( type   function foo() end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type function   foo() end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+    
+    code = R"( type function foo  () end )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
 TEST_CASE_FIXTURE(Fixture, "transpile_typeof_spaces_around_tokens")
 {
     std::string code = R"( type X = typeof(x) )";

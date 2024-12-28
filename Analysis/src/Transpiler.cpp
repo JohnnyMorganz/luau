@@ -1053,7 +1053,22 @@ struct Printer
         {
             if (writeTypes)
             {
-                writer.keyword("type function");
+                CstStatTypeFunction* cstNode = nullptr;
+                if (const auto& c = cstNodeMap[t])
+                    cstNode = c->as<CstStatTypeFunction>();
+                if (t->exported)
+                    writer.keyword("export");
+                if (cstNode)
+                    advance(cstNode->typeKeywordPosition);
+                else
+                    writer.space();
+                writer.keyword("type");
+                if (cstNode)
+                    advance(cstNode->functionKeywordPosition);
+                else
+                    writer.space();
+                writer.keyword("function");
+                advance(t->nameLocation.begin);
                 writer.identifier(t->name.value);
                 visualizeFunctionBody(*t->body);
             }

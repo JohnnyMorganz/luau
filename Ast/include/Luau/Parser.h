@@ -147,7 +147,7 @@ private:
     AstStat* parseTypeAlias(const Location& start, bool exported, Position typeKeywordPosition);
 
     // type function Name ... end
-    AstStat* parseTypeFunction(const Location& start, bool exported);
+    AstStat* parseTypeFunction(const Location& start, bool exported, Position typeKeywordPosition);
 
     AstDeclaredClassProp parseDeclaredClassMethod();
 

@@ -140,6 +140,13 @@ CstStatTypeAlias::CstStatTypeAlias(
 {
 }
 
+CstStatTypeFunction::CstStatTypeFunction(Position typeKeywordPosition, Position functionKeywordPosition)
+    : CstNode(CstClassIndex())
+    , typeKeywordPosition(typeKeywordPosition)
+    , functionKeywordPosition(functionKeywordPosition)
+{
+}
+
 CstTypeReference::CstTypeReference(
     std::optional<Position> prefixPointPosition,
     Position openParametersPosition,

@@ -950,7 +950,7 @@ AstStat* Parser::parseTypeAlias(const Location& start, bool exported, Position t
 {
     // parsing a type function
     if (lexer.current().type == Lexeme::ReservedFunction)
-        return parseTypeFunction(start, exported);
+        return parseTypeFunction(start, exported, typeKeywordPosition);
 
     // parsing a type alias
 
@@ -982,7 +982,7 @@ AstStat* Parser::parseTypeAlias(const Location& start, bool exported, Position t
 }
 
 // type function Name `(' arglist `)' `=' funcbody `end'
-AstStat* Parser::parseTypeFunction(const Location& start, bool exported)
+AstStat* Parser::parseTypeFunction(const Location& start, bool exported, Position typeKeywordPosition)
 {
     Lexeme matchFn = lexer.current();
     nextLexeme();
@@ -1009,7 +1009,9 @@ AstStat* Parser::parseTypeFunction(const Location& start, bool exported)
 
     matchRecoveryStopOnToken[Lexeme::ReservedEnd]--;
 
-    return allocator.alloc<AstStatTypeFunction>(Location(start, body->location), fnName->name, fnName->location, body, exported);
+    AstStatTypeFunction* node = allocator.alloc<AstStatTypeFunction>(Location(start, body->location), fnName->name, fnName->location, body, exported);
+    cstNodeMap[node] = allocator.alloc<CstStatTypeFunction>(typeKeywordPosition, matchFn.location.begin);
+    return node;
 }
 
 AstDeclaredClassProp Parser::parseDeclaredClassMethod()
