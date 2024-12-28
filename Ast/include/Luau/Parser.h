@@ -287,7 +287,11 @@ private:
     std::pair<AstArray<AstGenericType>, AstArray<AstGenericTypePack>> parseGenericTypeList(bool withDefaultValues);
 
     // `<' Type[, ...] `>'
-    AstArray<AstTypeOrPack> parseTypeParams();
+    AstArray<AstTypeOrPack> parseTypeParams(
+        Position* openingPosition = nullptr,
+        TempVector<Position>* commaPositions = nullptr,
+        Position* closingPosition = nullptr
+    );
 
     std::optional<AstArray<char>> parseCharArray();
     AstExpr* parseString();

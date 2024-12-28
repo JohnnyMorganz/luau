@@ -2068,17 +2068,18 @@ AstTypeOrPack Parser::parseSimpleType(bool allowPack, bool inDeclarationContext)
     else if (lexer.current().type == Lexeme::Name)
     {
         std::optional<AstName> prefix;
+        std::optional<Position> prefixPointPosition;
         std::optional<Location> prefixLocation;
         Name name = parseName("type name");
 
         if (lexer.current().type == '.')
         {
-            Position pointPosition = lexer.current().location.begin;
+            prefixPointPosition = lexer.current().location.begin;
             nextLexeme();
 
             prefix = name.name;
             prefixLocation = name.location;
-            name = parseIndexName("field name", pointPosition);
+            name = parseIndexName("field name", *prefixPointPosition);
         }
         else if (lexer.current().type == Lexeme::Dot3)
         {
@@ -2103,18 +2104,24 @@ AstTypeOrPack Parser::parseSimpleType(bool allowPack, bool inDeclarationContext)
 
         bool hasParameters = false;
         AstArray<AstTypeOrPack> parameters{};
+        Position parametersOpeningPosition{0, 0};
+        TempVector<Position> parametersCommaPositions(scratchPosition);
+        Position parametersClosingPosition{0, 0};
 
         if (lexer.current().type == '<')
         {
             hasParameters = true;
-            parameters = parseTypeParams();
+            parameters = parseTypeParams(&parametersOpeningPosition, &parametersCommaPositions, &parametersClosingPosition);
         }
 
         Location end = lexer.previousLocation();
 
-        return {
-            allocator.alloc<AstTypeReference>(Location(start, end), prefix, name.name, prefixLocation, name.location, hasParameters, parameters), {}
-        };
+        AstTypeReference* node =
+            allocator.alloc<AstTypeReference>(Location(start, end), prefix, name.name, prefixLocation, name.location, hasParameters, parameters);
+        cstNodeMap[node] = allocator.alloc<CstTypeReference>(
+            prefixPointPosition, parametersOpeningPosition, copy(parametersCommaPositions), parametersClosingPosition
+        );
+        return {node, {}};
     }
     else if (lexer.current().type == '{')
     {
@@ -3078,13 +3085,15 @@ std::pair<AstArray<AstGenericType>, AstArray<AstGenericTypePack>> Parser::parseG
     return {generics, genericPacks};
 }
 
-AstArray<AstTypeOrPack> Parser::parseTypeParams()
+AstArray<AstTypeOrPack> Parser::parseTypeParams(Position* openingPosition, TempVector<Position>* commaPositions, Position* closingPosition)
 {
     TempVector<AstTypeOrPack> parameters{scratchTypeOrPack};
 
     if (lexer.current().type == '<')
     {
         Lexeme begin = lexer.current();
+        if (openingPosition)
+            *openingPosition = begin.location.begin;
         nextLexeme();
 
         while (true)
@@ -3172,11 +3181,17 @@ AstArray<AstTypeOrPack> Parser::parseTypeParams()
             }
 
             if (lexer.current().type == ',')
+            {
+                if (commaPositions)
+                    commaPositions->push_back(lexer.current().location.begin);
                 nextLexeme();
+            }
             else
                 break;
         }
 
+        if (closingPosition)
+            *closingPosition = lexer.current().location.begin;
         expectMatchAndConsume('>', begin);
     }
 

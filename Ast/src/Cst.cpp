@@ -124,6 +124,20 @@ Luau::CstStatLocalFunction::CstStatLocalFunction(Luau::Position functionKeywordP
 {
 }
 
+CstTypeReference::CstTypeReference(
+    std::optional<Position> prefixPointPosition,
+    Position openParametersPosition,
+    AstArray<Position> parametersCommaPositions,
+    Position closeParametersPosition
+)
+    : CstNode(CstClassIndex())
+    , prefixPointPosition(prefixPointPosition)
+    , openParametersPosition(openParametersPosition)
+    , parametersCommaPositions(parametersCommaPositions)
+    , closeParametersPosition(closeParametersPosition)
+{
+}
+
 CstTypeTypeof::CstTypeTypeof(Position openPosition, Position closePosition)
     : CstNode(CstClassIndex())
     , openPosition(openPosition)

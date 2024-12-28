@@ -981,6 +981,33 @@ local a: Import.Type
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
 
+TEST_CASE_FIXTURE(Fixture, "transpile_type_reference_spaces_around_tokens")
+{
+    std::string code = R"( local _: Foo.Type )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( local _: Foo   .Type )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( local _: Foo.   Type )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( local _: Type  <> )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( local _: Type<  > )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( local _: Type<  number> )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( local _: Type<number  ,string> )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( local _: Type<number,  string  > )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
 TEST_CASE_FIXTURE(Fixture, "transpile_type_packs")
 {
     std::string code = R"(

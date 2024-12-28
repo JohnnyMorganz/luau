@@ -1202,16 +1202,25 @@ struct Printer
         advance(typeAnnotation.location.begin);
         if (const auto& a = typeAnnotation.as<AstTypeReference>())
         {
+            CstTypeReference* cstNode = nullptr;
+            if (const auto& c = cstNodeMap[a])
+                cstNode = c->as<CstTypeReference>();
+
             if (a->prefix)
             {
                 writer.write(a->prefix->value);
+                if (cstNode)
+                    advance(*cstNode->prefixPointPosition);
                 writer.symbol(".");
             }
 
+            advance(a->nameLocation.begin);
             writer.write(a->name.value);
             if (a->parameters.size > 0 || a->hasParameterList)
             {
-                CommaSeparatorInserter comma(writer);
+                CommaSeparatorInserter comma(writer, cstNode ? cstNode->parametersCommaPositions.begin() : nullptr);
+                if (cstNode)
+                    advance(cstNode->openParametersPosition);
                 writer.symbol("<");
                 for (auto o : a->parameters)
                 {
@@ -1222,7 +1231,8 @@ struct Printer
                     else
                         visualizeTypePackAnnotation(*o.typePack, false);
                 }
-
+                if (cstNode)
+                    advance(cstNode->closeParametersPosition);
                 writer.symbol(">");
             }
         }

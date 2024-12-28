@@ -304,6 +304,24 @@ public:
     Position functionKeywordPosition;
 };
 
+class CstTypeReference : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstTypeReference)
+
+    CstTypeReference(
+        std::optional<Position> prefixPointPosition,
+        Position openParametersPosition,
+        AstArray<Position> parametersCommaPositions,
+        Position closeParametersPosition
+    );
+
+    std::optional<Position> prefixPointPosition;
+    Position openParametersPosition;
+    AstArray<Position> parametersCommaPositions;
+    Position closeParametersPosition;
+};
+
 class CstTypeTypeof : public CstNode
 {
 public:
