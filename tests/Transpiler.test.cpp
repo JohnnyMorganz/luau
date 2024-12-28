@@ -355,10 +355,10 @@ TEST_CASE("function_with_types_spaces_around_tokens")
     code = R"( function p<X, Y, Z...>(o: string, m: number, ...: any  ): string end )";
     CHECK_EQ(code, transpile(code, {}, true).code);
 
-    code = R"( function p<X, Y, Z...>(o: string, m: number, ...: any)  : string end )";
+    code = R"( function p<X, Y, Z...>(o: string, m: number, ...: any)   :string end )";
     CHECK_EQ(code, transpile(code, {}, true).code);
 
-    code = R"( function p<X, Y, Z...>(o: string, m: number, ...: any):   string end )";
+    code = R"( function p<X, Y, Z...>(o: string, m: number, ...: any):    string end )";
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
 

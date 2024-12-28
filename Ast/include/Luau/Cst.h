@@ -129,13 +129,19 @@ class CstExprFunction : public CstNode
 public:
     LUAU_CST_RTTI(CstExprFunction)
 
-    CstExprFunction(AstArray<Position> argsCommaPositions);
+    CstExprFunction(
+        Position openGenericsPosition,
+        AstArray<Position> genericsCommaPositions,
+        Position closeGenericsPosition,
+        AstArray<Position> argsCommaPositions,
+        Position returnSpecifierPosition
+    );
 
-    // TODO:
-    //    Position openGenericsPosition;
-    //    AstArray<Position> genericsCommaPositions;
-    //    Position closeGenericsPosition;
+    Position openGenericsPosition;
+    AstArray<Position> genericsCommaPositions;
+    Position closeGenericsPosition;
     AstArray<Position> argsCommaPositions;
+    Position returnSpecifierPosition;
 };
 
 class CstExprTable : public CstNode

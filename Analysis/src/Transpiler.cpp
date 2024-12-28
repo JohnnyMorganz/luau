@@ -1109,11 +1109,13 @@ struct Printer
         if (const auto& c = cstNodeMap[&func])
             cstNode = c->as<CstExprFunction>();
 
-        // TODO: need to handle attributes, generics, generics defaults, and return type (incl. parentheses of return type)
+        // TODO: need to handle attributes, spaces around colon in params, and return type (incl. parentheses of return type)
 
         if (func.generics.size > 0 || func.genericPacks.size > 0)
         {
-            CommaSeparatorInserter comma(writer);
+            CommaSeparatorInserter comma(writer, cstNode ? cstNode->genericsCommaPositions.begin() : nullptr);
+            if (cstNode)
+                advance(cstNode->openGenericsPosition);
             writer.symbol("<");
             for (const auto& o : func.generics)
             {
@@ -1130,6 +1132,8 @@ struct Printer
                 writer.identifier(o.name.value);
                 writer.symbol("...");
             }
+            if (cstNode)
+                advance(cstNode->closeGenericsPosition);
             writer.symbol(">");
         }
 
@@ -1172,6 +1176,8 @@ struct Printer
 
         if (writeTypes && func.returnAnnotation)
         {
+            if (cstNode)
+                advance(cstNode->returnSpecifierPosition);
             writer.symbol(":");
             writer.space();
 

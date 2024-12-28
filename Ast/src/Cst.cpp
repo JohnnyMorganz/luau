@@ -37,9 +37,19 @@ CstExprIndexExpr::CstExprIndexExpr(Position openBracketPosition, Position closeB
 {
 }
 
-CstExprFunction::CstExprFunction(AstArray<Position> argsCommaPositions)
+CstExprFunction::CstExprFunction(
+    Position openGenericsPosition,
+    AstArray<Position> genericsCommaPositions,
+    Position closeGenericsPosition,
+    AstArray<Position> argsCommaPositions,
+    Position returnSpecifierPosition
+)
     : CstNode(CstClassIndex())
+    , openGenericsPosition(openGenericsPosition)
+    , genericsCommaPositions(genericsCommaPositions)
+    , closeGenericsPosition(closeGenericsPosition)
     , argsCommaPositions(argsCommaPositions)
+    , returnSpecifierPosition(returnSpecifierPosition)
 {
 }
 

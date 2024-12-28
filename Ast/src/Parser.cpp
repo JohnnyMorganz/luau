@@ -1344,7 +1344,11 @@ std::pair<AstExprFunction*, AstLocal*> Parser::parseFunctionBody(
 {
     Location start = matchFunction.location;
 
-    auto [generics, genericPacks] = parseGenericTypeList(/* withDefaultValues= */ false);
+    Position genericsOpenPosition{0, 0};
+    TempVector<Position> genericsCommaPositions(scratchPosition);
+    Position genericsClosePosition{0, 0};
+    auto [generics, genericPacks] =
+        parseGenericTypeList(/* withDefaultValues= */ false, &genericsOpenPosition, &genericsCommaPositions, &genericsClosePosition);
 
     MatchLexeme matchParen = lexer.current();
     expectAndConsume('(', "function");
@@ -1382,7 +1386,8 @@ std::pair<AstExprFunction*, AstLocal*> Parser::parseFunctionBody(
     if (FFlag::LuauErrorRecoveryForTableTypes)
         matchRecoveryStopOnToken[')']--;
 
-    std::optional<AstTypeList> typelist = parseOptionalReturnType();
+    Position returnSpecifierPosition{0, 0};
+    std::optional<AstTypeList> typelist = parseOptionalReturnType(&returnSpecifierPosition);
 
     AstLocal* funLocal = nullptr;
 
@@ -1425,7 +1430,9 @@ std::pair<AstExprFunction*, AstLocal*> Parser::parseFunctionBody(
         varargAnnotation,
         argLocation
     );
-    cstNodeMap[node] = allocator.alloc<CstExprFunction>(copy(argsCommaPositions));
+    cstNodeMap[node] = allocator.alloc<CstExprFunction>(
+        genericsOpenPosition, copy(genericsCommaPositions), genericsClosePosition, copy(argsCommaPositions), returnSpecifierPosition
+    );
 
     return {node, funLocal};
 }
@@ -1548,13 +1555,15 @@ AstTypePack* Parser::parseTypeList(TempVector<AstType*>& result, TempVector<std:
     return nullptr;
 }
 
-std::optional<AstTypeList> Parser::parseOptionalReturnType()
+std::optional<AstTypeList> Parser::parseOptionalReturnType(Position* returnSpecifierPosition)
 {
     if (lexer.current().type == ':' || lexer.current().type == Lexeme::SkinnyArrow)
     {
         if (lexer.current().type == Lexeme::SkinnyArrow)
             report(lexer.current().location, "Function return type annotations are written after ':' instead of '->'");
 
+        if (returnSpecifierPosition)
+            *returnSpecifierPosition = lexer.current().location.begin;
         nextLexeme();
 
         unsigned int oldRecursionCount = recursionCounter;

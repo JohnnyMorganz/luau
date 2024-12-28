@@ -203,7 +203,7 @@ private:
     // Returns the variadic annotation, if it exists.
     AstTypePack* parseTypeList(TempVector<AstType*>& result, TempVector<std::optional<AstArgumentName>>& resultNames);
 
-    std::optional<AstTypeList> parseOptionalReturnType();
+    std::optional<AstTypeList> parseOptionalReturnType(Position* returnSpecifierPosition = nullptr);
     std::pair<Location, AstTypeList> parseReturnType();
 
     AstTableIndexer* parseTableIndexer(AstTableAccess access, std::optional<Location> accessLocation);
