@@ -201,7 +201,12 @@ private:
     //      |   `(' [TypeList] `)' `->` ReturnType
 
     // Returns the variadic annotation, if it exists.
-    AstTypePack* parseTypeList(TempVector<AstType*>& result, TempVector<std::optional<AstArgumentName>>& resultNames);
+    AstTypePack* parseTypeList(
+        TempVector<AstType*>& result,
+        TempVector<std::optional<AstArgumentName>>& resultNames,
+        TempVector<Position>* commaPositions = nullptr,
+        TempVector<std::optional<Position>>* nameColonPositions = nullptr
+    );
 
     std::optional<AstTypeList> parseOptionalReturnType(Position* returnSpecifierPosition = nullptr);
     std::pair<Location, AstTypeList> parseReturnType();
@@ -468,6 +473,7 @@ private:
     std::vector<AstGenericTypePack> scratchGenericTypePacks;
     std::vector<std::optional<AstArgumentName>> scratchOptArgName;
     std::vector<Position> scratchPosition;
+    std::vector<std::optional<Position>> scratchOptPosition;
     std::string scratchData;
 
     CstNodeMap cstNodeMap;

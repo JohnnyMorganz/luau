@@ -171,6 +171,29 @@ CstTypeReference::CstTypeReference(
 {
 }
 
+
+CstTypeFunction::CstTypeFunction(
+    Position openGenericsPosition,
+    AstArray<Position> genericsCommaPositions,
+    Position closeGenericsPosition,
+    Position openArgsPosition,
+    AstArray<std::optional<Position>> argumentNameColonPositions,
+    AstArray<Position> argumentsCommaPositions,
+    Position closeArgsPosition,
+    Position returnArrowPosition
+)
+    : CstNode(CstClassIndex())
+    , openGenericsPosition(openGenericsPosition)
+    , genericsCommaPositions(genericsCommaPositions)
+    , closeGenericsPosition(closeGenericsPosition)
+    , openArgsPosition(openArgsPosition)
+    , argumentNameColonPositions(argumentNameColonPositions)
+    , argumentsCommaPositions(argumentsCommaPositions)
+    , closeArgsPosition(closeArgsPosition)
+    , returnArrowPosition(returnArrowPosition)
+{
+}
+
 CstTypeTypeof::CstTypeTypeof(Position openPosition, Position closePosition)
     : CstNode(CstClassIndex())
     , openPosition(openPosition)

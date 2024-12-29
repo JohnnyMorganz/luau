@@ -1407,7 +1407,7 @@ TEST_CASE("transpile_raw_string_types")
 {
     std::string code = R"( type a = [[ hello world ]] )";
     CHECK_EQ(code, transpile(code, {}, true).code);
-    
+
     code = R"( type a = [==[ hello world ]==] )";
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
@@ -1415,6 +1415,93 @@ TEST_CASE("transpile_raw_string_types")
 TEST_CASE("transpile_escaped_string_types")
 {
     const std::string code = R"( type a = "\\b\\t\\n\\\\" )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
+TEST_CASE("transpile_type_function_unnamed_arguments")
+{
+    std::string code = R"( type Foo = () -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo =   () -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = (string) -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = (string, number) -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = (  string, number) -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = (string  , number) -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = (string,   number) -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = (string, number  ) -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = (string, number)   -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = (string, number) ->   () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
+TEST_CASE("transpile_type_function_named_arguments")
+{
+    std::string code = R"( type Foo = (x: string) -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = (x: string, y: number) -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = (  x: string, y: number) -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = (x  : string, y: number) -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = (x:   string, y: number) -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = (x: string,   y: number) -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
+TEST_CASE("transpile_type_function_generics")
+{
+    std::string code = R"( type Foo = <X, Y, Z...>() -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo =   <X, Y, Z...>() -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = <  X, Y, Z...>() -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = <X  , Y, Z...>() -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = <X,   Y, Z...>() -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = <X, Y  , Z...>() -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = <X, Y,   Z...>() -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = <X, Y, Z  ...>() -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = <X, Y, Z...  >() -> () )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = <X, Y, Z...>  () -> () )";
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
 

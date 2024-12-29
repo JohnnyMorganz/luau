@@ -336,6 +336,32 @@ public:
     Position closeParametersPosition;
 };
 
+class CstTypeFunction : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstTypeFunction)
+
+    CstTypeFunction(
+        Position openGenericsPosition,
+        AstArray<Position> genericsCommaPositions,
+        Position closeGenericsPosition,
+        Position openArgsPosition,
+        AstArray<std::optional<Position>> argumentNameColonPositions,
+        AstArray<Position> argumentsCommaPositions,
+        Position closeArgsPosition,
+        Position returnArrowPosition
+    );
+
+    Position openGenericsPosition;
+    AstArray<Position> genericsCommaPositions;
+    Position closeGenericsPosition;
+    Position openArgsPosition;
+    AstArray<std::optional<Position>> argumentNameColonPositions;
+    AstArray<Position> argumentsCommaPositions;
+    Position closeArgsPosition;
+    Position returnArrowPosition;
+};
+
 class CstTypeTypeof : public CstNode
 {
 public:

@@ -1515,7 +1515,12 @@ AstType* Parser::parseOptionalType()
 }
 
 // TypeList ::= Type [`,' TypeList] | ...Type
-AstTypePack* Parser::parseTypeList(TempVector<AstType*>& result, TempVector<std::optional<AstArgumentName>>& resultNames)
+AstTypePack* Parser::parseTypeList(
+    TempVector<AstType*>& result,
+    TempVector<std::optional<AstArgumentName>>& resultNames,
+    TempVector<Position>* commaPositions,
+    TempVector<std::optional<Position>>* nameColonPositions
+)
 {
     while (true)
     {
@@ -1527,22 +1532,31 @@ AstTypePack* Parser::parseTypeList(TempVector<AstType*>& result, TempVector<std:
             // Fill in previous argument names with empty slots
             while (resultNames.size() < result.size())
                 resultNames.push_back({});
+            if (nameColonPositions)
+                while (nameColonPositions->size() < result.size())
+                    nameColonPositions->push_back({});
 
             resultNames.push_back(AstArgumentName{AstName(lexer.current().name), lexer.current().location});
             nextLexeme();
 
+            if (nameColonPositions)
+                nameColonPositions->push_back(lexer.current().location.begin);
             expectAndConsume(':');
         }
         else if (!resultNames.empty())
         {
             // If we have a type with named arguments, provide elements for all types
             resultNames.push_back({});
+            if (nameColonPositions)
+                nameColonPositions->push_back({});
         }
 
         result.push_back(parseType());
         if (lexer.current().type != ',')
             break;
 
+        if (commaPositions)
+            commaPositions->push_back(lexer.current().location.begin);
         nextLexeme();
 
         if (lexer.current().type == ')')
@@ -1794,7 +1808,11 @@ AstTypeOrPack Parser::parseFunctionType(bool allowPack, const AstArray<AstAttr*>
 
     Lexeme begin = lexer.current();
 
-    auto [generics, genericPacks] = parseGenericTypeList(/* withDefaultValues= */ false);
+    Position genericsOpenPosition{0, 0};
+    TempVector<Position> genericsCommaPositions(scratchPosition);
+    Position genericsClosePosition{0, 0};
+    auto [generics, genericPacks] =
+        parseGenericTypeList(/* withDefaultValues= */ false, &genericsOpenPosition, &genericsCommaPositions, &genericsClosePosition);
 
     Lexeme parameterStart = lexer.current();
 
@@ -1804,11 +1822,14 @@ AstTypeOrPack Parser::parseFunctionType(bool allowPack, const AstArray<AstAttr*>
 
     TempVector<AstType*> params(scratchType);
     TempVector<std::optional<AstArgumentName>> names(scratchOptArgName);
+    TempVector<std::optional<Position>> nameColonPositions(scratchOptPosition);
+    TempVector<Position> argCommaPositions(scratchPosition);
     AstTypePack* varargAnnotation = nullptr;
 
     if (lexer.current().type != ')')
-        varargAnnotation = parseTypeList(params, names);
+        varargAnnotation = parseTypeList(params, names, &argCommaPositions, &nameColonPositions);
 
+    Position closeArgsPosition = lexer.current().location.begin;
     expectMatchAndConsume(')', parameterStart, true);
 
     matchRecoveryStopOnToken[Lexeme::SkinnyArrow]--;
@@ -1834,7 +1855,20 @@ AstTypeOrPack Parser::parseFunctionType(bool allowPack, const AstArray<AstAttr*>
 
     AstArray<std::optional<AstArgumentName>> paramNames = copy(names);
 
-    return {parseFunctionTypeTail(begin, attributes, generics, genericPacks, paramTypes, paramNames, varargAnnotation), {}};
+    // TODO: might not necessarily return an AstTypeFunction
+    Position returnArrowPosition = lexer.current().location.begin;
+    AstType* node = parseFunctionTypeTail(begin, attributes, generics, genericPacks, paramTypes, paramNames, varargAnnotation);
+    cstNodeMap[node] = allocator.alloc<CstTypeFunction>(
+        genericsOpenPosition,
+        copy(genericsCommaPositions),
+        genericsClosePosition,
+        parameterStart.location.begin,
+        copy(nameColonPositions),
+        copy(argCommaPositions),
+        closeArgsPosition,
+        returnArrowPosition
+    );
+    return {node, {}};
 }
 
 AstType* Parser::parseFunctionTypeTail(
