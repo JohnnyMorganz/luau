@@ -1392,40 +1392,146 @@ struct Printer
         {
             AstTypeReference* indexType = a->indexer ? a->indexer->indexType->as<AstTypeReference>() : nullptr;
 
-            if (a->props.size == 0 && indexType && indexType->name == "number")
+            CstTypeTable* cstNode = nullptr;
+            if (const auto& c = cstNodeMap[a])
+                cstNode = c->as<CstTypeTable>();
+
+            writer.symbol("{");
+
+            if (cstNode)
             {
-                writer.symbol("{");
-                visualizeTypeAnnotation(*a->indexer->resultType);
-                writer.symbol("}");
+                if (cstNode->isArray)
+                {
+                    LUAU_ASSERT(a->props.size == 0 && indexType && indexType->name == "number");
+                    if (a->indexer->accessLocation)
+                    {
+                        LUAU_ASSERT(a->indexer->access != AstTableAccess::ReadWrite);
+                        advance(a->indexer->accessLocation->begin);
+                        writer.keyword(a->indexer->access == AstTableAccess::Read ? "read" : "write");
+                    }
+                    visualizeTypeAnnotation(*a->indexer->resultType);
+                }
+                else
+                {
+                    const AstTableProp* prop = a->props.begin();
+
+                    for (std::size_t i = 0; i < cstNode->items.size; ++i)
+                    {
+                        CstTypeTable::Item item = cstNode->items.data[i];
+                        // we store indexer as part of items to preserve property ordering
+                        if (item.kind == CstTypeTable::Item::Kind::Indexer)
+                        {
+                            LUAU_ASSERT(a->indexer);
+
+                            if (a->indexer->accessLocation)
+                            {
+                                LUAU_ASSERT(a->indexer->access != AstTableAccess::ReadWrite);
+                                advance(a->indexer->accessLocation->begin);
+                                writer.keyword(a->indexer->access == AstTableAccess::Read ? "read" : "write");
+                            }
+
+                            advance(item.indexerOpenPosition);
+                            writer.symbol("[");
+                            visualizeTypeAnnotation(*a->indexer->indexType);
+                            advance(item.indexerClosePosition);
+                            writer.symbol("]");
+                            advance(item.colonPosition);
+                            writer.symbol(":");
+                            visualizeTypeAnnotation(*a->indexer->resultType);
+
+                            if (item.separator)
+                            {
+                                advance(*item.separatorPosition);
+                                if (item.separator == CstExprTable::Comma)
+                                    writer.symbol(",");
+                                else if (item.separator == CstExprTable::Semicolon)
+                                    writer.symbol(";");
+                            }
+                        }
+                        else
+                        {
+                            if (prop->accessLocation)
+                            {
+                                LUAU_ASSERT(prop->access != AstTableAccess::ReadWrite);
+                                advance(prop->accessLocation->begin);
+                                writer.keyword(prop->access == AstTableAccess::Read ? "read" : "write");
+                            }
+
+                            if (item.kind == CstTypeTable::Item::Kind::StringProperty)
+                            {
+                                advance(item.indexerOpenPosition);
+                                writer.symbol("[");
+                                writer.sourceString(
+                                    std::string_view(item.stringInfo->sourceString.data, item.stringInfo->sourceString.size),
+                                    item.stringInfo->quoteStyle,
+                                    item.stringInfo->blockDepth
+                                );
+                                advance(item.indexerClosePosition);
+                                writer.symbol("]");
+                            }
+                            else
+                            {
+                                advance(prop->location.begin);
+                                writer.identifier(prop->name.value);
+                            }
+
+                            advance(item.colonPosition);
+                            writer.symbol(":");
+                            visualizeTypeAnnotation(*prop->type);
+
+                            if (item.separator)
+                            {
+                                advance(*item.separatorPosition);
+                                if (item.separator == CstExprTable::Comma)
+                                    writer.symbol(",");
+                                else if (item.separator == CstExprTable::Semicolon)
+                                    writer.symbol(";");
+                            }
+
+                            ++prop;
+                        }
+                    }
+                }
             }
             else
             {
-                CommaSeparatorInserter comma(writer);
-
-                writer.symbol("{");
-
-                for (std::size_t i = 0; i < a->props.size; ++i)
+                if (a->props.size == 0 && indexType && indexType->name == "number")
                 {
-                    comma();
-                    advance(a->props.data[i].location.begin);
-                    writer.identifier(a->props.data[i].name.value);
-                    if (a->props.data[i].type)
-                    {
-                        writer.symbol(":");
-                        visualizeTypeAnnotation(*a->props.data[i].type);
-                    }
-                }
-                if (a->indexer)
-                {
-                    comma();
-                    writer.symbol("[");
-                    visualizeTypeAnnotation(*a->indexer->indexType);
-                    writer.symbol("]");
-                    writer.symbol(":");
                     visualizeTypeAnnotation(*a->indexer->resultType);
                 }
-                writer.symbol("}");
+                else
+                {
+                    CommaSeparatorInserter comma(writer);
+
+                    for (std::size_t i = 0; i < a->props.size; ++i)
+                    {
+                        comma();
+                        advance(a->props.data[i].location.begin);
+                        writer.identifier(a->props.data[i].name.value);
+                        if (a->props.data[i].type)
+                        {
+                            writer.symbol(":");
+                            visualizeTypeAnnotation(*a->props.data[i].type);
+                        }
+                    }
+                    if (a->indexer)
+                    {
+                        comma();
+                        writer.symbol("[");
+                        visualizeTypeAnnotation(*a->indexer->indexType);
+                        writer.symbol("]");
+                        writer.symbol(":");
+                        visualizeTypeAnnotation(*a->indexer->resultType);
+                    }
+                }
             }
+
+            Position endPos = a->location.end;
+            if (endPos.column > 0)
+                --endPos.column;
+            advance(endPos);
+
+            writer.symbol("}");
         }
         else if (auto a = typeAnnotation.as<AstTypeTypeof>())
         {

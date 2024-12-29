@@ -1418,6 +1418,133 @@ TEST_CASE("transpile_escaped_string_types")
     CHECK_EQ(code, transpile(code, {}, true).code);
 }
 
+TEST_CASE("transpile_type_table_semicolon_separators")
+{
+    const std::string code = R"(
+        type Foo = {
+            bar: number;
+            baz: number;
+        }
+    )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
+TEST_CASE("transpile_type_table_access_modifiers")
+{
+    std::string code = R"(
+        type Foo = {
+            read  bar: number,
+              write baz: number,
+        }
+    )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = { read string } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = {
+        read [string]: number,
+        read ["property"]: number
+    } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
+TEST_CASE("transpile_type_table_spaces_between_tokens")
+{
+    std::string code = R"( type Foo = { bar: number, } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = {   bar: number, } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = { bar  : number, } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = { bar:   number, } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = { bar: number  , } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = { bar: number,   } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = { bar: number   } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = { [string]: number } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = {    [string]: number } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = { [   string]: number } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = { [string   ]: number } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = { [string]   : number } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"( type Foo = { [string]:   number } )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
+TEST_CASE("transpile_type_table_preserve_original_indexer_style")
+{
+    std::string code = R"(
+        type Foo = {
+            [number]: string
+        }
+    )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"(
+        type Foo = { { number } }
+    )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
+TEST_CASE("transpile_type_table_preserve_indexer_location")
+{
+    std::string code = R"(
+        type Foo = {
+            [number]: string,
+            property: number,
+        }
+    )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"(
+        type Foo = {
+            property: number,
+            [number]: string,
+        }
+    )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+
+    code = R"(
+        type Foo = {
+            property: number,
+            [number]: string,
+            property2: number,
+        }
+    )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
+TEST_CASE("transpile_type_table_preserve_property_definition_style")
+{
+    std::string code = R"(
+        type Foo = {
+            ["$$typeof1"]: string,
+            ['$$typeof2']: string,
+        }
+    )";
+    CHECK_EQ(code, transpile(code, {}, true).code);
+}
+
 TEST_CASE("transpile_type_function_unnamed_arguments")
 {
     std::string code = R"( type Foo = () -> () )";

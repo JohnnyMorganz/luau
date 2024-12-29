@@ -211,7 +211,13 @@ private:
     std::optional<AstTypeList> parseOptionalReturnType(Position* returnSpecifierPosition = nullptr);
     std::pair<Location, AstTypeList> parseReturnType();
 
-    AstTableIndexer* parseTableIndexer(AstTableAccess access, std::optional<Location> accessLocation);
+    AstTableIndexer* parseTableIndexer(
+        AstTableAccess access,
+        std::optional<Location> accessLocation,
+        Position* indexerOpenPosition = nullptr,
+        Position* indexerClosePosition = nullptr,
+        Position* colonPosition = nullptr
+    );
 
     AstTypeOrPack parseFunctionType(bool allowPack, const AstArray<AstAttr*>& attributes);
     AstType* parseFunctionTypeTail(
@@ -463,6 +469,7 @@ private:
     std::vector<Binding> scratchBinding;
     std::vector<AstLocal*> scratchLocal;
     std::vector<AstTableProp> scratchTableTypeProps;
+    std::vector<CstTypeTable::Item> scratchCstTableTypeProps;
     std::vector<AstType*> scratchType;
     std::vector<AstTypeOrPack> scratchTypeOrPack;
     std::vector<AstDeclaredClassProp> scratchDeclaredClassProps;

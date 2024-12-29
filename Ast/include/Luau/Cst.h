@@ -336,6 +336,36 @@ public:
     Position closeParametersPosition;
 };
 
+class CstTypeTable : public CstNode
+{
+public:
+    LUAU_CST_RTTI(CstTypeTable)
+
+    struct Item
+    {
+        enum struct Kind
+        {
+            Indexer,
+            Property,
+            StringProperty,
+        };
+
+        Kind kind;
+        Position indexerOpenPosition;  // '[', only if Kind != Property
+        Position indexerClosePosition; // ']' only if Kind != Property
+        Position colonPosition;
+        std::optional<CstExprTable::Separator> separator; // may be missing for last Item
+        std::optional<Position> separatorPosition;
+
+        CstExprConstantString* stringInfo = nullptr; // only if Kind == StringProperty
+    };
+
+    CstTypeTable(AstArray<Item> items, bool isArray);
+
+    AstArray<Item> items;
+    bool isArray = false;
+};
+
 class CstTypeFunction : public CstNode
 {
 public:

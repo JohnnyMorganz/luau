@@ -171,6 +171,12 @@ CstTypeReference::CstTypeReference(
 {
 }
 
+CstTypeTable::CstTypeTable(AstArray<Item> items, bool isArray)
+    : CstNode(CstClassIndex())
+    , items(items)
+    , isArray(isArray)
+{
+}
 
 CstTypeFunction::CstTypeFunction(
     Position openGenericsPosition,

@@ -1667,15 +1667,28 @@ std::pair<Location, AstTypeList> Parser::parseReturnType()
 }
 
 // TableIndexer ::= `[' Type `]' `:' Type
-AstTableIndexer* Parser::parseTableIndexer(AstTableAccess access, std::optional<Location> accessLocation)
+AstTableIndexer* Parser::parseTableIndexer(
+    AstTableAccess access,
+    std::optional<Location> accessLocation,
+    Position* indexerOpenPosition,
+    Position* indexerClosePosition,
+    Position* colonPosition
+)
 {
     const Lexeme begin = lexer.current();
     nextLexeme(); // [
 
+    if (indexerOpenPosition)
+        *indexerOpenPosition = begin.location.begin;
+
     AstType* index = parseType();
 
+    if (indexerClosePosition)
+        *indexerClosePosition = lexer.current().location.begin;
     expectMatchAndConsume(']', begin);
 
+    if (colonPosition)
+        *colonPosition = lexer.current().location.begin;
     expectAndConsume(':', "table field");
 
     AstType* result = parseType();
@@ -1692,12 +1705,15 @@ AstType* Parser::parseTableType(bool inDeclarationContext)
     incrementRecursionCounter("type annotation");
 
     TempVector<AstTableProp> props(scratchTableTypeProps);
+    TempVector<CstTypeTable::Item> cstItems(scratchCstTableTypeProps);
     AstTableIndexer* indexer = nullptr;
 
     Location start = lexer.current().location;
 
     MatchLexeme matchBrace = lexer.current();
     expectAndConsume('{', "table type");
+
+    bool isArray = false;
 
     while (lexer.current().type != '}')
     {
@@ -1724,9 +1740,26 @@ AstType* Parser::parseTableType(bool inDeclarationContext)
         {
             const Lexeme begin = lexer.current();
             nextLexeme(); // [
+
+            CstExprConstantString::QuoteStyle style;
+            unsigned int blockDepth = 0;
+            if (lexer.current().type == Lexeme::RawString)
+            {
+                style = CstExprConstantString::QuotedRaw;
+                blockDepth = lexer.current().getBlockDepth();
+            }
+            else
+                style = lexer.current().getQuoteStyle() == Lexeme::QuoteStyle::Double ? CstExprConstantString::QuotedDouble
+                                                                                      : CstExprConstantString::QuotedSingle;
+
+            scratchData.assign(lexer.current().data, lexer.current().getLength());
+            AstArray<char> sourceString = copy(scratchData);
+
             std::optional<AstArray<char>> chars = parseCharArray();
 
+            Position indexerClosePosition = lexer.current().location.begin;
             expectMatchAndConsume(']', begin);
+            Position colonPosition = lexer.current().location.begin;
             expectAndConsume(':', "table field");
 
             AstType* type = parseType();
@@ -1735,7 +1768,20 @@ AstType* Parser::parseTableType(bool inDeclarationContext)
             bool containsNull = chars && (memchr(chars->data, 0, chars->size) != nullptr);
 
             if (chars && !containsNull)
+            {
                 props.push_back(AstTableProp{AstName(chars->data), begin.location, type, access, accessLocation});
+                cstItems.push_back(
+                    CstTypeTable::Item{
+                        CstTypeTable::Item::Kind::StringProperty,
+                        begin.location.begin,
+                        indexerClosePosition,
+                        colonPosition,
+                        tableSeparator(),
+                        lexer.current().location.begin,
+                        allocator.alloc<CstExprConstantString>(sourceString, style, blockDepth)
+                    }
+                );
+            }
             else
                 report(begin.location, "String literal contains malformed escape sequence or \\0");
         }
@@ -1752,7 +1798,20 @@ AstType* Parser::parseTableType(bool inDeclarationContext)
             }
             else
             {
-                indexer = parseTableIndexer(access, accessLocation);
+                Position indexerOpenPosition{0, 0};
+                Position indexerClosePosition{0, 0};
+                Position colonPosition{0, 0};
+                indexer = parseTableIndexer(access, accessLocation, &indexerOpenPosition, &indexerClosePosition, &colonPosition);
+                cstItems.push_back(
+                    CstTypeTable::Item{
+                        CstTypeTable::Item::Kind::Indexer,
+                        indexerOpenPosition,
+                        indexerClosePosition,
+                        colonPosition,
+                        tableSeparator(),
+                        lexer.current().location.begin,
+                    }
+                );
             }
         }
         else if (props.empty() && !indexer && !(lexer.current().type == Lexeme::Name && lexer.lookahead().type == ':'))
@@ -1760,6 +1819,7 @@ AstType* Parser::parseTableType(bool inDeclarationContext)
             AstType* type = parseType();
 
             // array-like table type: {T} desugars into {[number]: T}
+            isArray = true;
             AstType* index = allocator.alloc<AstTypeReference>(type->location, std::nullopt, nameNumber, std::nullopt, type->location);
             indexer = allocator.alloc<AstTableIndexer>(AstTableIndexer{index, type, type->location, access, accessLocation});
 
@@ -1772,11 +1832,22 @@ AstType* Parser::parseTableType(bool inDeclarationContext)
             if (!name)
                 break;
 
+            Position colonPosition = lexer.current().location.begin;
             expectAndConsume(':', "table field");
 
             AstType* type = parseType(inDeclarationContext);
 
             props.push_back(AstTableProp{name->name, name->location, type, access, accessLocation});
+            cstItems.push_back(
+                CstTypeTable::Item{
+                    CstTypeTable::Item::Kind::Property,
+                    Position{0, 0},
+                    Position{0, 0},
+                    colonPosition,
+                    tableSeparator(),
+                    lexer.current().location.begin
+                }
+            );
         }
 
         if (lexer.current().type == ',' || lexer.current().type == ';')
@@ -1795,7 +1866,9 @@ AstType* Parser::parseTableType(bool inDeclarationContext)
     if (!expectMatchAndConsume('}', matchBrace, /* searchForMissing = */ FFlag::LuauErrorRecoveryForTableTypes))
         end = lexer.previousLocation();
 
-    return allocator.alloc<AstTypeTable>(Location(start, end), copy(props), indexer);
+    AstTypeTable* node = allocator.alloc<AstTypeTable>(Location(start, end), copy(props), indexer);
+    cstNodeMap[node] = allocator.alloc<CstTypeTable>(copy(cstItems), isArray);
+    return node;
 }
 
 // ReturnType ::= Type | `(' TypeList `)'
