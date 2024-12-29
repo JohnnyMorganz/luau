@@ -160,9 +160,6 @@ std::string Lexeme::toString() const
         return data ? "--[" + block + "[" + format("%.*s", length, data) + "]" + block + "]" : "string";
     }
 
-    case Whitespace:
-        return data ? format("%.*s", length, data) : "<whitespace>";
-
     case Attribute:
         return name ? format("%s", name) : "attribute";
 
